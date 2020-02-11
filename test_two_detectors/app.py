@@ -1,8 +1,13 @@
 import time
 import edgeiq
 """
-Simultaneously utilize two object detection models and present results to shared
-output stream.
+Simultaneously utilize two object detection models and present the results to
+a single output stream.
+
+The models used in this app are ssd_inception_v2_coco_2018_01_28, which can detect
+numerous inanimate objects, such as bikes, utensils, animals, etc., and the
+the mobilenet_ssd, which is a smaller library but detects some larger objects that
+ssd_inception_v2_coco_2018_01_28 does not, such as a sofa, a train, or an airplane.
 
 To change the computer vision model, follow this guide:
 https://dashboard.alwaysai.co/docs/application_development/changing_the_model.html
@@ -14,13 +19,16 @@ https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_a
 
 def main():
 
+    # if you would like to test an additional model, add one to the list below:
     models = ["alwaysai/mobilenet_ssd", "alwaysai/ssd_inception_v2_coco_2018_01_28"]
-    
-    colors = [(52, 64, 235), (82, 235, 52)]
+
+    # if you've added a model, add a new color in as a list of tuples in RGB format
+    # to make visualization easier (e.g. [(R, G, B)]).
+    colors = [[(66, 68, 179)], [(50, 227, 62)]]
 
     objects = []
 
-    # load all the models
+    # load all the models (creates a new object detector for each model)
     for model in models:
 
         # start up a first object detection model
@@ -30,6 +38,7 @@ def main():
         # track the generated object detection items by storing them in objects
         objects.append(obj_detect)
 
+        # print the details of each model to the console
         print("Model:\n{}\n".format(obj_detect.model_id))
         print("Engine: {}".format(obj_detect.engine))
         print("Accelerator: {}\n".format(obj_detect.accelerator))
@@ -56,18 +65,12 @@ def main():
                     results = objects[i].detect_objects(
                         frame, confidence_level=.5)
                     frame = edgeiq.markup_image(
-                        frame, results.predictions, show_labels=False, colors=colors[i]) 
-                    
-                    #text.append("Model: {}".format(objects[i].model_id))
-                    #text.append(
-                            #"Inference time: {:1.3f} s".format(results.duration))
-                    #text.append("Objects:")
+                        frame, results.predictions, show_labels=False, colors=colors[i])
 
                     # append each prediction
                     for prediction in results.predictions:
-                        text.append("({}) {}: {:2.2f}%".format(objects[i].model_id,
+                        text.append("Model {} detects {}: {:2.2f}%".format(objects[i].model_id,
                             prediction.label, prediction.confidence * 100))
-
                 
                 # send the image frame and the predictions for both 
                 # prediction models to the output stream

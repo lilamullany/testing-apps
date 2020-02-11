@@ -7,7 +7,7 @@ To run this app, you will need an alwaysAI account. Please register at https://a
 Easy start up guides can be found following registration. Please see the docs page for more information: https://alwaysai.co/docs/getting_started/introduction.html
 
 
-If you are having trouble connecting to your edge device, use the CLI configure command to reset the device. Please the following page for more details: https://alwaysai.co/docs/reference/cli_commands.html
+If you are having trouble connecting to your edge device, use the CLI configure command to reset the device. Please see the following page for more details: https://alwaysai.co/docs/reference/cli_commands.html
 
 
 The age classifier used is the 'alwaysai/agenet' model, and more details can be found at https://alwaysai.co/model-catalog?model=alwaysai/agenet

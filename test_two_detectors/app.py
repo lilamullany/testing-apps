@@ -1,5 +1,6 @@
 import time
 import edgeiq
+import numpy
 """
 Simultaneously utilize two object detection models and present the results to
 a single output stream.
@@ -64,8 +65,16 @@ def main():
                 for i in range(0, len(detectors)):
                     results = detectors[i].detect_objects(
                         frame, confidence_level=.5)
-                    frame = edgeiq.markup_image(
+                    object_frame = edgeiq.markup_image(
                         frame, results.predictions, show_labels=False, colors=colors[i])
+
+                    # for the first frame, overwrite the input feed
+                    if i == 0:
+                        display_frame = object_frame
+                    else:
+
+                        # otherwise, append the new marked-up frame to the previous one
+                        display_frame = numpy.concatenate((object_frame, display_frame))
 
                     # append each prediction
                     for prediction in results.predictions:
@@ -74,7 +83,7 @@ def main():
                 
                 # send the image frame and the predictions for both 
                 # prediction models to the output stream
-                streamer.send_data(frame, text)
+                streamer.send_data(display_frame, text)
 
                 fps.update()
 

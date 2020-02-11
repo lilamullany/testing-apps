@@ -1,11 +1,11 @@
 import time
 import edgeiq
 """
-Use object detection to detect human faces and to classification to classify 
-detected faces in terms of age groups simultaneously, and output results to 
+Simultaneously use object detection to detect human faces and classification to classify
+the detected faces in terms of age groups, and output results to
 shared output stream.
 
-To change the computer vision model, follow this guide:
+To change the computer vision models, follow this guide:
 https://dashboard.alwaysai.co/docs/application_development/changing_the_model.html
 
 To change the engine and accelerator, follow this guide:
@@ -20,19 +20,25 @@ def main():
             "alwaysai/res10_300x300_ssd_iter_140000")
     facial_detector.load(engine=edgeiq.Engine.DNN)
 
-    # make a classifer to classify the age of the image
+    # then make a classifier to classify the age of the image
     classifier = edgeiq.Classification("alwaysai/agenet")
     classifier.load(engine=edgeiq.Engine.DNN)
 
+    # descriptions printed to console
     print("Engine: {}".format(facial_detector.engine))
     print("Accelerator: {}\n".format(facial_detector.accelerator))
     print("Model:\n{}\n".format(facial_detector.model_id))
+
+    print("Engine: {}".format(classifier.engine))
+    print("Accelerator: {}\n".format(classifier.accelerator))
+    print("Model:\n{}\n".format(classifier.model_id))
 
     fps = edgeiq.FPS()
 
     try:
         with edgeiq.WebcamVideoStream(cam=0) as video_stream, \
                 edgeiq.Streamer() as streamer:
+
             # Allow Webcam to warm up
             time.sleep(2.0)
             fps.start()
@@ -53,7 +59,7 @@ def main():
                         "Inference time: {:1.3f} s".format(results.duration))
                 text.append("Objects:")
 
-                # append each predication 
+                # append each predication to the text output
                 for prediction in results.predictions:
                     text.append("{}: {:2.2f}%".format(
                         prediction.label, prediction.confidence * 100))

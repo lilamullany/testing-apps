@@ -22,11 +22,11 @@ def main():
     # if you would like to test an additional model, add one to the list below:
     models = ["alwaysai/mobilenet_ssd", "alwaysai/ssd_inception_v2_coco_2018_01_28"]
 
-    # if you've added a model, add a new color in as a list of tuples in RGB format
-    # to make visualization easier (e.g. [(R, G, B)]).
+    # if you've added a model, add a new color in as a list of tuples in BGR format
+    # to make visualization easier (e.g. [(B, G, R)]).
     colors = [[(66, 68, 179)], [(50, 227, 62)]]
 
-    objects = []
+    detectors = []
 
     # load all the models (creates a new object detector for each model)
     for model in models:
@@ -35,8 +35,8 @@ def main():
         obj_detect = edgeiq.ObjectDetection(model)
         obj_detect.load(engine=edgeiq.Engine.DNN)
 
-        # track the generated object detection items by storing them in objects
-        objects.append(obj_detect)
+        # track the generated object detection items by storing them in detectors
+        detectors.append(obj_detect)
 
         # print the details of each model to the console
         print("Model:\n{}\n".format(obj_detect.model_id))
@@ -60,16 +60,16 @@ def main():
 
                 text = [""]
 
-                # gather data from the all the objects 
-                for i in range(0, len(objects)):
-                    results = objects[i].detect_objects(
+                # gather data from the all the detectors 
+                for i in range(0, len(detectors)):
+                    results = detectors[i].detect_objects(
                         frame, confidence_level=.5)
                     frame = edgeiq.markup_image(
                         frame, results.predictions, show_labels=False, colors=colors[i])
 
                     # append each prediction
                     for prediction in results.predictions:
-                        text.append("Model {} detects {}: {:2.2f}%".format(objects[i].model_id,
+                        text.append("Model {} detects {}: {:2.2f}%".format(detectors[i].model_id,
                             prediction.label, prediction.confidence * 100))
                 
                 # send the image frame and the predictions for both 

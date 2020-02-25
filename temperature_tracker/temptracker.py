@@ -2,17 +2,22 @@ from gpiozero import CPUTemperature
 import time
 
 
-"""Update the argument list with the current CPU temperature"""
 def update(list):
+    """Updates the argument list with the current CPU temperature
+    as well as the current time."""
+
     cpu = CPUTemperature()
     new_reading = (cpu.temperature, time.localtime())
     list.append(new_reading)
 
 
-"""Print out a summary of the temperature readings including average
-temperature, the number of readings, the maximum temperature and the
-time the maximum temperature reading occurred."""
 def summary(list):
+    """Prints out a summary of the temperature readings.
+
+    Includes average temperature, the number of readings,
+    the maximum temperature and the time the maximum
+    temperature reading occurred."""
+
 
     # calculate average temperature
     total_temp = 0.0

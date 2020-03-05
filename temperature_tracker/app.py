@@ -1,7 +1,7 @@
 import time
 import edgeiq
 import numpy
-import temptracker
+from temptracker import TemperatureTracker
 
 """
 Simultaneously utilize two object detection models and present the results to
@@ -33,6 +33,7 @@ def main():
 
     # initialize a list to hold temperature data
     TEMP_DATA = []
+    temperature_tracker = TemperatureTracker(TEMP_DATA)
 
     # load all the models (creates a new object detector for each model)
     for model in models:
@@ -59,6 +60,9 @@ def main():
             # Allow Webcam to warm up
             time.sleep(2.0)
             fps.start()
+
+            # start the temperature tracker
+            temperature_tracker.start()
 
 
             # loop detection
@@ -88,7 +92,7 @@ def main():
                             prediction.label, prediction.confidence * 100, results.duration))
                 
                 # get an instance of the cpu temperature
-                temptracker.update(TEMP_DATA)
+                temperature_tracker.update()
                 
                 # send the image frame and the predictions for both 
                 # prediction models to the output stream
@@ -101,9 +105,13 @@ def main():
 
     finally:
         fps.stop()
+        temperature_tracker.stop()
         print("elapsed time: {:.2f}".format(fps.get_elapsed_seconds()))
         print("approx. FPS: {:.2f}".format(fps.compute_fps()))
-        temptracker.summary(TEMP_DATA)
+        summary = temperature_tracker.summary()
+        print(summary)
+
+        print(*TEMP_DATA)
 
         print("Program Ending")
 

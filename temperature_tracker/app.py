@@ -1,7 +1,7 @@
 import time
 import edgeiq
 import numpy
-from temptracker import TemperatureTracker
+from temperature_tracker import TemperatureTracker
 
 """
 Simultaneously utilize two object detection models and present the results to
@@ -23,7 +23,8 @@ https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_a
 def main():
 
     # if you would like to test an additional model, add one to the list below:
-    models = ["alwaysai/mobilenet_ssd", "alwaysai/ssd_inception_v2_coco_2018_01_28"]
+    models = ["alwaysai/mobilenet_ssd",
+              "alwaysai/ssd_inception_v2_coco_2018_01_28"]
 
     # if you've added a model, add a new color in as a list of tuples in BGR format
     # to make visualization easier (e.g. [(B, G, R)]).
@@ -56,7 +57,7 @@ def main():
     try:
         with edgeiq.WebcamVideoStream(cam=0) as video_stream, \
                 edgeiq.Streamer() as streamer:
-            
+
             # Allow Webcam to warm up
             time.sleep(2.0)
             fps.start()
@@ -64,14 +65,13 @@ def main():
             # start the temperature tracker
             temperature_tracker.start()
 
-
             # loop detection
             while True:
                 frame = video_stream.read()
 
                 text = [""]
 
-                # gather data from the all the detectors 
+                # gather data from the all the detectors
                 for i in range(0, len(detectors)):
                     results = detectors[i].detect_objects(
                         frame, confidence_level=.5)
@@ -84,17 +84,18 @@ def main():
                     else:
 
                         # otherwise, append the new marked-up frame to the previous one
-                        display_frame = numpy.concatenate((object_frame, display_frame))
+                        display_frame = numpy.concatenate(
+                            (object_frame, display_frame))
 
                     # append each prediction
                     for prediction in results.predictions:
                         text.append("Model {} detects {}: {:2.2f}% (inference time: {:1.2f})".format(detectors[i].model_id,
-                            prediction.label, prediction.confidence * 100, results.duration))
-                
+                                                                                                     prediction.label, prediction.confidence * 100, results.duration))
+
                 # get an instance of the cpu temperature
                 temperature_tracker.update()
-                
-                # send the image frame and the predictions for both 
+
+                # send the image frame and the predictions for both
                 # prediction models to the output stream
                 streamer.send_data(display_frame, text)
 

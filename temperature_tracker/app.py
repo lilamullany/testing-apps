@@ -112,8 +112,6 @@ def main():
         summary = temperature_tracker.summary()
         print(summary)
 
-        print(*TEMP_DATA)
-
         print("Program Ending")
 
 

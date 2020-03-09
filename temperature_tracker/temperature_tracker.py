@@ -3,270 +3,317 @@ import time
 
 
 class TemperatureTracker:
-    # TODO: Can either uncomment or remove these from final commit
-    # "{:1.2f}C/{:1.2f}F at time {}".format(min_temp, (((min_temp * (9 / 5)) + 32)), time.strftime('%Y-%m-%d %H:%M:%S', min_temp_time))
-    # "{:1.2f}C/{:1.2f}F at time {}".format(max_temp, (((max_temp * (9 / 5)) + 32)), time.strftime('%Y-%m-%d %H:%M:%S',max_temp_time))
-    # "{:1.2f}C/{:1.2f}F".format(average_temp, (((average_temp * (9 / 5)) + 32)))
 
-    def __init__(self, temp_list=[]):
-        self.temp_list = temp_list
-        # TODO: I think you can remove all these properties, just rerun the functions that provide their
-        # values when needed.
-        self.max = 0.0,
-        self.max_temp_time = time.localtime(),
-        self.min = 0.0,
-        self.min_temp_time = time.localtime(),
-        self.ave = 0.0,
-        self.start_timestamp = None,
-        self.stop_timestamp = None,
-        self.temp_count = 0
+    MAX_TEMP_RASP4 = 82.0
 
-    # TODO: Recommend reworking this function to return a tuple with the min. temp from the list
-    def minimum(self, temp_list):
-        """
-        TODO: Add NumpPy styled docstrings: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_numpy.html
+    def __init__(self, temp_time_list=[]):
+        self.temp_time_list = temp_time_list
+        self.start_timestamp = None
+        self.stop_timestamp = None
 
-        Get the minimum temperature listed from a... 
 
-        Params
-        -------
-        temp_list
-            A list of...
+    def check_from(self, temp_time_list):
+        """Returns True if the latest temperature was above MAX_TEMP_RASP4
+
+
         Returns
         -------
+        bool
+            True if the latest temperature was greater than MAX_TEMP_RASP4
+
+        """
+
+        # NOTE: I used the latest reading so it was testable.
+        if temp_time_list[-1][0] > self.MAX_TEMP_RASP4:
+            return True
+
+        return False
+
+
+
+    def check(self):
+        """Returns True if the latest temperature was above MAX_TEMP_RASP4
+
+        Calls check_from() using the instance list
+
+        Returns
+        -------
+        bool
+            True if the latest temperature was greater than MAX_TEMP_RASP4
+
+        """
+        return self.check_from(self.temp_time_list)
+
+
+
+    def minimum(self):
+        """Returns the minimum temperature reading in the instance list
+
+        Calls the minimum_from() function, using the instance list as an input parameter
+
+        Returns
+        -------
+        float
+            The temperature from the input list with the lowest temperature value
 
 
         """
-        # TODO: Alt solution if returning a tuple:
-        result = temp_list[0][0]
-        for temp, time in temp_list:
-            if temp < result.temperature:
-                result = temp
+        return self.minimum_from(self.temp_time_list)[0]
+
+
+
+    def minimum_from(self, temp_time_list):
+        """Returns the minimum temperature reading in the specified list
+
+        Get the minimum temperature listed from an input list of tuples that contain
+         temperature floats and time data
+
+        Parameters
+        -------
+        temp_list : [(float, time)]
+            A list of (temperature, time) tuples that each specify a temperature
+             readings and the time the reading was taken
+
+        Returns
+        -------
+        (float, time)
+            The tuple from the input list with the lowest temperature value
+
+
+        """
+        result = temp_time_list[0]
+        for temp, time in temp_time_list:
+            if temp < result[0]:
+                result = (temp, time)
+
         return result
 
-        # min_temp = temp_list[0][0]
-        # min_temp_time = time.localtime()
 
-        # for i in range(0, len(temp_list)):
-        #     current_temp = temp_list[i][0]
-
-        #     # track the maximum temperature
-        #     if current_temp < min_temp:
-        #         min_temp = current_temp
-        #         min_temp_time = temp_list[i][1]
-
-        # # update the instance variables
-        # self.min_temp_time = min_temp_time
-        # self.min = min_temp
-
-        # return min_temp
-
-    # TODO: Can we do method overloading in Python?
-    def minimum(self):
-        """
-        TODO: Simple description
-        """
-        # TODO: Alt option if only using a temp_list property for your class
-        return minimum(self, self.temp_list)[0]
-
-        # min_temp = self.temp_list[0][0]
-        # min_temp_time = time.localtime()
-
-        # for i in range(0, len(self.temp_list)):
-        #     current_temp = self.temp_list[i][0]
-
-        #     # track the maximum temperature
-        #     if current_temp < min_temp:
-        #         min_temp = current_temp
-        #         min_temp_time = self.temp_list[i][1]
-
-        # # update the instance variables
-        # self.min_temp_time = min_temp_time
-        # self.min = min_temp
-
-        # return min_temp
-
-    def maximum(self, temp_list):
-        '''
-        TODO: Simple description
-        '''
-        max_temp = 0.0
-        max_temp_time = time.localtime()
-
-        for i in range(0, len(temp_list)):
-            current_temp = temp_list[i][0]
-
-            # track the maximum temperature
-            if current_temp > max_temp:
-                max_temp = current_temp
-                max_temp_time = temp_list[i][1]
-
-        # update the instance variables
-        self.max_temp_time = max_temp_time
-        self.max = max_temp
-
-        return max_temp
 
     def maximum(self):
+        """Returns the maximum temperature reading in the instance list
+
+        Calls the maximum_from() function, using the instance list as an input parameter
+
+        Returns
+        -------
+        float
+            The temperature from the input list with the highest temperature value
+
+
         """
-        TODO: Simple description
+        return self.maximum_from(self.temp_time_list)[0]
+
+
+
+    def maximum_from(self, temp_time_list):
+        """Returns the maximum temperature reading in the specified list
+
+        Get the maximum temperature listed from an input list of tuples that contain
+         temperature floats and time data
+
+        Parameters
+        -------
+        temp_list : [(float, time)]
+            A list of (temperature, time) tuples that each specify a temperature
+             readings and the time the reading was taken
+
+        Returns
+        -------
+        (float, time)
+            The tuple from the input list with the highest temperature value
+
+
         """
-        max_temp = 0.0
-        max_temp_time = time.localtime()
+        result = temp_time_list[0]
+        for temp, time in temp_time_list:
+            if temp > result[0]:
+                result = (temp, time)
 
-        for i in range(0, len(self.temp_list)):
-            current_temp = self.temp_list[i][0]
+        return result
 
-            # track the maximum temperature
-            if current_temp > max_temp:
-                max_temp = current_temp
-                max_temp_time = self.temp_list[i][1]
 
-        # update the instance variables
-        self.max_temp_time = max_temp_time
-        self.max = max_temp
-
-        return max_temp
-
-    def update(self, temp_list):
-        """Updates the input argument list with the current CPU temperature
-        as well as the current time.
-
-        TODO: Expand Docstring
-        """
-
-        cpu = CPUTemperature()
-        new_reading = (cpu.temperature,  time.localtime())
-        temp_list.append(new_reading)
-        self.temp_list = temp_list
-        self.temp_count = len(temp_list)
 
     def update(self):
         """Updates the object argument list with the current CPU temperature
         as well as the current time.
 
-        TODO: Expand Docstring
+        Calls the update_from() function, using the instance list as an input parameter
+
+        """
+        self.update_from(self.temp_time_list)
+
+
+
+    def update_from(self, temp_time_list):
+        """Updates the input argument list with the current CPU temperature
+        as well as the current time.
+
+        Takes a new temperature reading and stores this reading along with
+        the current time in a tuple.
+
+        Updates the instance list by appending this new tuple.
         """
 
         cpu = CPUTemperature()
-        new_reading = (cpu.temperature, time.localtime())
-        self.temp_list.append(new_reading)
-        self.temp_count = len(self.temp_list)
+        new_reading = (cpu.temperature,  time.localtime())
+        temp_time_list.append(new_reading)
 
-    def average(self, temp_list):
-        """
-        TODO: Simple description
-        """
-        total_temp = 0.0
-        count = 0
 
-        # calculate average temperature
-        for i in range(0, len(temp_list)):
-            current_temp = temp_list[i][0]
-            total_temp = total_temp + current_temp
-            count = count + 1
-
-        average_temp = total_temp / count
-        return average_temp
 
     def average(self):
+        """Returns the average temperature reading in the instance list
+
+        Calls the average_from() function, using the instance list as an input parameter
+
+        Returns
+        -------
+        float
+            The temperature from the input list with the average temperature value
+
+
         """
-        TODO: Simple description
+        return self.average_from(self.temp_time_list)
+
+
+
+    def average_from(self, temp_time_list):
+        """Returns the average temperature reading in the specified list
+
+        Calculates the average temperature from an input list of tuples that contain
+         temperature floats and time data
+
+        Parameters
+        -------
+        temp_list : [(float, time)]
+            A list of (temperature, time) tuples that each specify a temperature
+             readings and the time the reading was taken
+
+        Returns
+        -------
+        float
+            The average temperature reading from the input list
+
+
         """
         total_temp = 0.0
         count = 0
 
-        # calculate average temperature
-        for i in range(0, len(self.temp_list)):
-            current_temp = self.temp_list[i][0]
-            total_temp = total_temp + current_temp
-            count = count + 1
+        for temp, time in temp_time_list:
+            total_temp += temp
+            count += 1
 
-        average_temp = total_temp / count
-        return average_temp
+        return total_temp / count
 
-    def count(self, temp_list):
-        count = len(temp_list)
-        return count
+
 
     def count(self):
-        count = len(self.temp_list)
+        """Returns the number of temperature readings in the specified list
+
+        Calls count_from() with the instance list as input
+
+        Returns
+        -------
+        int
+            The number of temperature readings from the input list
+        """
+
+        return self.count_from(self.temp_time_list)
+
+
+
+    def count_from(self, temp_time_list):
+        """Returns the number of temperature readings in the specified list
+
+        Parameters
+        -------
+        temp_list : [(float, time)]
+            A list of (temperature, time) tuples that each specify a temperature
+             readings and the time the reading was taken
+
+        Returns
+        -------
+        int
+            The number of temperature readings from the input list
+        """
+
+        count = len(temp_time_list)
         return count
 
+
     def temperatures(self):
+        """Returns the temperature readings for the instance
+
+        Returns
+        -------
+        temp_list : [(float, time)]
+            A list of (temperature, time) tuples that each specify a temperature
+             readings and the time the reading was taken
         """
-        TODO: Docstring
-        """
-        return self.temp_list
+        return self.temp_time_list
+
+
 
     def start(self):
-        """
-        TODO: Simple description
+        """Marks the start time of the temperature tracker
+
+        Sets the instance time of start_timestamp to current time
         """
         self.start_timestamp = time.localtime()
 
-    def stop(self):
+
+    def get_start(self):
+        """Returns the start time of the temperature tracker
+
+        Returns
+        -------
+        time
+            The time the tracker started
         """
-        TODO: Simple description 
+        return self.start_timestamp
+
+
+    def stop(self):
+        """Marks the stop time of the temperature tracker
+
+        Sets the instance time of stop_timestamp to current time
         """
         self.stop_timestamp = time.localtime()
 
-        # def stop_tracker(temp_data):
-        # temp_data['stop_timestamp'] = time.localtime()
 
-    def summary(self, temp_list):
+    def get_stop(self):
+        """Returns the stop time of the temperature tracker
+
+        Returns
+        -------
+        time
+            The time the tracker stopped
+        """
+        return self.stop_timestamp
+
+
+    def summary_from(self, temp_time_list):
         """Prints out a summary of the temperature readings in easy to read format.
 
-        Includes average temperature, the number of readings,
-        the maximum temperature and the minimum temperature.
+        Includes average temperature, the number of readings, each reading in
+        human-readable format, and the the maximum, minimum, and average temperatures.
 
-        TODO: Expand to Docstring
+        Parameters
+        -------
+        temp_list : [(float, time)]
+            A list of (temperature, time) tuples that each specify a temperature
+             readings and the time the reading was taken
+
+        Returns
+        -------
+        string
+            A string of summary details on the temperature readings
+
 
         """
         temp_dict = {}
 
         # first make sure all readings are up to date
-        temp_dict['average'] = self.average(temp_list)
-        temp_dict['minimum'] = self.min(temp_list)
-        temp_dict['maximum'] = self.max(temp_list)
-        temp_dict['count'] = self.count(temp_list)
-        temp_dict['start_timestamp'] = self.start_timestamp
-        temp_dict['stop_timestamp'] = self.start_timestamp
-
-        if temp_dict['start_timestamp'] is None:
-            return "The temperature tracker has not yet been started"
-        else:
-            summary_string = "The temperature tracker was started at: " + \
-                             time.strftime('%Y-%m-%d %H:%M:%S',
-                                           temp_dict['start_timestamp']) + "\n"
-            summary_string += "A total of " + \
-                str(temp_dict['count']) + " have been gathered\n"
-            summary_string += "The readings so far are: \n"
-
-            for i in range(0, len(self.temp_list)):
-                summary_string += "\t\t" + "{:1.2f}C/{:1.2f}F at time {}\n".format(temp_list[i][0],
-                                                                                   (((temp_list[i][0] * (9 / 5)) + 32)),
-                                                                                   time.strftime('%Y-%m-%d %H:%M:%S', temp_list[i][1])) + "\n"
-
-            summary_string += "The average temperature was: {:1.2f}C/{:1.2f}F".format(
-                temp_dict['average'], (((temp_dict['average'] * (9 / 5)) + 32))) + "\n"
-
-        return summary_string
-
-    def summary(self):
-        """Prints out a summary of the temperature readings in easy to read format.
-
-        Includes average temperature, the number of readings,
-        the maximum temperature and the minimum temperature.
-
-        TODO: Expand Docstring
-
-        """
-
-        temp_dict = {}
-
-        # first make sure all readings are up to date
-        temp_list = self.temp_list
         temp_dict['average'] = self.average()
         temp_dict['minimum'] = self.minimum()
         temp_dict['maximum'] = self.maximum()
@@ -274,8 +321,6 @@ class TemperatureTracker:
         temp_dict['start_timestamp'] = self.start_timestamp
         temp_dict['stop_timestamp'] = self.start_timestamp
 
-        #time.strptime(temp_list[i][1], '%Y-%m-%d %H:%M:%S')
-
         if temp_dict['start_timestamp'] is None:
             return "The temperature tracker has not yet been started"
         else:
@@ -286,13 +331,45 @@ class TemperatureTracker:
                 str(temp_dict['count']) + " have been gathered\n"
             summary_string += "The readings so far are: \n"
 
-            for i in range(0, len(self.temp_list)):
-                summary_string += "\t\t" + "{:1.2f}C/{:1.2f}F at time {}\n".format(temp_list[i][0],
-                                                                                   (((temp_list[i][0] * (9 / 5)) + 32)),
-                                                                                   time.strftime('%Y-%m-%d %H:%M:%S',
-                                                                                                 temp_list[i][1])) + "\n"
+            for i in range(0, len(temp_time_list)):
+                summary_string += "\t\t" + "{:1.2f}C/{:1.2f}F at time {}\n".format(temp_time_list[i][0],
+                                                                                   (((temp_time_list[i][0] * (9 / 5)) + 32)),
+                                                                                   time.strftime('%Y-%m-%d %H:%M:%S', temp_time_list[i][1]))
 
-            summary_string += "The average temperature was: {:1.2f}C/{:1.2f}F".format(temp_dict['average'], (
-                ((temp_dict['average'] * (9 / 5)) + 32))) + "\n"
+            summary_string += "The average temperature was: {:1.2f}C/{:1.2f}F".format(
+                temp_dict['average'], (((temp_dict['average'] * (9 / 5)) + 32))) + "\n"
+
+            summary_string += "The maximum temperature was: {:1.2f}C/{:1.2f}F".format(
+                temp_dict['maximum'], (((temp_dict['maximum'] * (9 / 5)) + 32))) + "\n"
+
+            summary_string += "The minimum temperature was: {:1.2f}C/{:1.2f}F".format(
+                temp_dict['minimum'], (((temp_dict['minimum'] * (9 / 5)) + 32))) + "\n"
+
+            if temp_dict['stop_timestamp'] is not None:
+                summary_string += "The temperature tracker was stopped at time: " + \
+                                  time.strftime('%Y-%m-%d %H:%M:%S',temp_dict['stop_timestamp']) + "\n"
+
+            else:
+                summary_string += "The temperature tracker is still on.\n"
+
 
         return summary_string
+
+
+
+    def summary(self):
+        """Prints out a summary of the temperature readings in easy to read format.
+
+        Includes average temperature, the number of readings,
+        the maximum temperature and the minimum temperature.
+
+        Calls summary_from() with the instance list as input to gather summary data
+
+        Returns
+        -------
+        string
+            A string of summary details on the temperature readings
+
+        """
+
+        return self.summary_from(self.temp_time_list)

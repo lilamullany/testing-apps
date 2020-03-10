@@ -10,40 +10,7 @@ class TemperatureTracker:
         self.temp_time_list = temp_time_list
         self.start_timestamp = None
         self.stop_timestamp = None
-
-
-    # def check_from(self, temp_time_list):
-    #     """Returns True if the latest temperature was above MAX_TEMP_RASP4
-    #
-    #
-    #     Returns
-    #     -------
-    #     bool
-    #         True if the latest temperature was greater than MAX_TEMP_RASP4
-    #
-    #     """
-    #
-    #     # NOTE: I used the latest reading so it was testable.
-    #     if temp_time_list[-1][0] > self.MAX_TEMP_RASP4:
-    #         return True
-    #
-    #     return False
-
-
-
-    # def check(self):
-    #     """Returns True if the latest temperature was above MAX_TEMP_RASP4
-    #
-    #     Calls check_from() using the instance list
-    #
-    #     Returns
-    #     -------
-    #     bool
-    #         True if the latest temperature was greater than MAX_TEMP_RASP4
-    #
-    #     """
-    #     return self.check_from(self.temp_time_list)
-
+        
 
 
     def minimum(self):

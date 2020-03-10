@@ -22,6 +22,9 @@ https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_a
 
 def main():
 
+    # toggle temperature logging (True for logging temperature statements)
+    should_log = False
+
     # if you would like to test an additional model, add one to the list below:
     models = ["alwaysai/mobilenet_ssd",
               "alwaysai/ssd_inception_v2_coco_2018_01_28"]
@@ -97,13 +100,14 @@ def main():
 
                 # gather the current temperature and timestamp and print it
                 now = temperature_tracker.now()
-                print(str(now[0]) + " " + time.strftime('%Y-%m-%d %H:%M:%S', now[1]))
 
-
-                if now[0] < temperature_tracker.MAX_TEMP_RASP4:
-                    print("Temperature is safe")
-                else:
-                    print("You should shut down")
+                if should_log == True:
+                    print(str(now[0]) + " " + time.strftime('%Y-%m-%d %H:%M:%S', now[1]))
+                    
+                    if now[0] < temperature_tracker.MAX_TEMP_RASP4:
+                        print("Temperature is safe")
+                    else:
+                        print("You should shut down")
 
                 # send the image frame and the predictions for both
                 # prediction models to the output stream

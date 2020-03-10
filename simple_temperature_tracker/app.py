@@ -16,7 +16,7 @@ https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_a
 
 def main():
 
-	# toggle temperature logging (True for logging temperature statements)
+    # toggle temperature logging (True for logging temperature statements)
     should_log = False
 
     obj_detect = edgeiq.ObjectDetection(
@@ -83,8 +83,8 @@ def main():
                 fps.update()
 
                 if now[0] >= temperature_tracker.MAX_TEMP_RASP4:
-                	print("Maximum safe temeprature reached, stopping program")
-                	break
+                    print("Maximum safe temeprature reached, stopping program")
+                    break
 
                 if streamer.check_exit():
                     break

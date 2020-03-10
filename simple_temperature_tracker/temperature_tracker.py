@@ -10,11 +10,11 @@ class TemperatureTracker:
         self.temp_time_list = temp_time_list
         self.start_timestamp = None
         self.stop_timestamp = None
-        
 
 
     def minimum(self):
-        """Returns the minimum temperature reading in the instance list
+        """
+        Returns the minimum temperature reading in the instance list
 
         Calls the minimum_from() function, using the instance list as an input parameter
 
@@ -22,15 +22,13 @@ class TemperatureTracker:
         -------
         float
             The temperature from the input list with the lowest temperature value
-
-
         """
         return self.minimum_from(self.temp_time_list)[0]
 
 
-
     def minimum_from(self, temp_time_list):
-        """Returns the minimum temperature reading in the specified list
+        """
+        Returns the minimum temperature reading in the specified list
 
         Get the minimum temperature listed from an input list of tuples that contain
          temperature floats and time data
@@ -45,8 +43,6 @@ class TemperatureTracker:
         -------
         (float, time)
             The tuple from the input list with the lowest temperature value
-
-
         """
         result = temp_time_list[0]
         for temp, time in temp_time_list:
@@ -56,9 +52,9 @@ class TemperatureTracker:
         return result
 
 
-
     def maximum(self):
-        """Returns the maximum temperature reading in the instance list
+        """
+        Returns the maximum temperature reading in the instance list
 
         Calls the maximum_from() function, using the instance list as an input parameter
 
@@ -66,15 +62,13 @@ class TemperatureTracker:
         -------
         float
             The temperature from the input list with the highest temperature value
-
-
         """
         return self.maximum_from(self.temp_time_list)[0]
 
 
-
     def maximum_from(self, temp_time_list):
-        """Returns the maximum temperature reading in the specified list
+        """
+        Returns the maximum temperature reading in the specified list
 
         Get the maximum temperature listed from an input list of tuples that contain
          temperature floats and time data
@@ -89,8 +83,6 @@ class TemperatureTracker:
         -------
         (float, time)
             The tuple from the input list with the highest temperature value
-
-
         """
         result = temp_time_list[0]
         for temp, time in temp_time_list:
@@ -100,13 +92,12 @@ class TemperatureTracker:
         return result
 
 
-
     def update(self):
-        """Updates the temperature readings
+        """
+        Updates the temperature readings
 
         Calculates the current temperature reading, calls the update_from() function,
         using the instance list as an input parameter, as well as the new temperature reading.
-
         """
         cpu = CPUTemperature()
         new_reading = (cpu.temperature, time.localtime())
@@ -116,7 +107,8 @@ class TemperatureTracker:
 
 
     def update_from(self, new_reading, temp_time_list):
-        """Takes a new temperature reading and appends this to
+        """
+        Takes a new temperature reading and appends this to
         the input list.
 
         Updates the instance list with the appended list.
@@ -134,7 +126,8 @@ class TemperatureTracker:
 
 
     def now(self):
-        """Calculates and returns the current temperature and timestamp
+        """
+        Calculates and returns the current temperature and timestamp
 
         Returns
         -------
@@ -148,7 +141,8 @@ class TemperatureTracker:
 
 
     def average(self):
-        """Returns the average temperature reading in the instance list
+        """
+        Returns the average temperature reading in the instance list
 
         Calls the average_from() function, using the instance list as an input parameter
 
@@ -156,15 +150,14 @@ class TemperatureTracker:
         -------
         float
             The temperature from the input list with the average temperature value
-
-
         """
         return self.average_from(self.temp_time_list)
 
 
 
     def average_from(self, temp_time_list):
-        """Returns the average temperature reading in the specified list
+        """
+        Returns the average temperature reading in the specified list
 
         Calculates the average temperature from an input list of tuples that contain
          temperature floats and time data
@@ -179,8 +172,6 @@ class TemperatureTracker:
         -------
         float
             The average temperature reading from the input list
-
-
         """
         total_temp = 0.0
         count = 0
@@ -194,7 +185,8 @@ class TemperatureTracker:
 
 
     def count(self):
-        """Returns the number of temperature readings in the specified list
+        """
+        Returns the number of temperature readings in the specified list
 
         Calls count_from() with the instance list as input
 
@@ -209,7 +201,8 @@ class TemperatureTracker:
 
 
     def count_from(self, temp_time_list):
-        """Returns the number of temperature readings in the specified list
+        """
+        Returns the number of temperature readings in the specified list
 
         Parameters
         -------
@@ -228,7 +221,8 @@ class TemperatureTracker:
 
 
     def temperatures(self):
-        """Returns the temperature readings for the instance
+        """
+        Returns the temperature readings for the instance
 
         Returns
         -------
@@ -241,7 +235,8 @@ class TemperatureTracker:
 
 
     def start(self):
-        """Marks the start time of the temperature tracker
+        """
+        Marks the start time of the temperature tracker
 
         Sets the instance time of start_timestamp to current time
         """
@@ -249,7 +244,8 @@ class TemperatureTracker:
 
 
     def get_start(self):
-        """Returns the start time of the temperature tracker
+        """
+        Returns the start time of the temperature tracker
 
         Returns
         -------
@@ -260,7 +256,8 @@ class TemperatureTracker:
 
 
     def stop(self):
-        """Marks the stop time of the temperature tracker
+        """
+        Marks the stop time of the temperature tracker
 
         Sets the instance time of stop_timestamp to current time
         """
@@ -268,7 +265,8 @@ class TemperatureTracker:
 
 
     def get_stop(self):
-        """Returns the stop time of the temperature tracker
+        """
+        Returns the stop time of the temperature tracker
 
         Returns
         -------
@@ -279,7 +277,8 @@ class TemperatureTracker:
 
 
     def summary_from(self, temp_time_list):
-        """Prints out a summary of the temperature readings in easy to read format.
+        """
+        Prints out a summary of the temperature readings in easy to read format.
 
         Includes average temperature, the number of readings, each reading in
         human-readable format, and the the maximum, minimum, and average temperatures.
@@ -294,8 +293,6 @@ class TemperatureTracker:
         -------
         string
             A string of summary details on the temperature readings
-
-
         """
         temp_dict = {}
 
@@ -344,7 +341,8 @@ class TemperatureTracker:
 
 
     def summary(self):
-        """Prints out a summary of the temperature readings in easy to read format.
+        """
+        Prints out a summary of the temperature readings in easy to read format.
 
         Includes average temperature, the number of readings,
         the maximum temperature and the minimum temperature.
@@ -355,7 +353,6 @@ class TemperatureTracker:
         -------
         string
             A string of summary details on the temperature readings
-
         """
 
         return self.summary_from(self.temp_time_list)

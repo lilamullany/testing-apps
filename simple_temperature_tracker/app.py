@@ -16,9 +16,6 @@ https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_a
 
 def main():
 
-    # toggle temperature logging (True for logging temperature statements)
-    should_log = False
-
     obj_detect = edgeiq.ObjectDetection(
             "alwaysai/mobilenet_ssd")
     obj_detect.load(engine=edgeiq.Engine.DNN)
@@ -67,23 +64,23 @@ def main():
                 # gather the current temperature and timestamp and print it
                 now = temperature_tracker.now()
 
-                # optional log block showing current temperature
-                if should_log == True:
-                    print(str(now[0]) + " " + time.strftime('%Y-%m-%d %H:%M:%S', now[1]))
+                # log block showing current temperature
+                print(str(now[0]) + " " + time.strftime('%Y-%m-%d %H:%M:%S', now[1]))
 
-                    # details whether the temperature is safe for a Raspberry Pi 4
-                    if now[0] < temperature_tracker.MAX_TEMP_RASP4:
-                        print("Temperature is safe")
-                    else:
-                        print("You should shut down")
+                # details whether the temperature is safe for a Raspberry Pi 4
+                if now[0] < temperature_tracker.MAX_TEMP_RASP4:
+                    print("Temperature is safe")
+                else:
+                    print("You should shut down")
 
 
                 streamer.send_data(frame, text)
 
                 fps.update()
 
+                # exit program if maximum safe temp has been reached
                 if now[0] >= temperature_tracker.MAX_TEMP_RASP4:
-                    print("Maximum safe temeprature reached, stopping program")
+                    print("Maximum safe temperature reached, stopping program")
                     break
 
                 if streamer.check_exit():

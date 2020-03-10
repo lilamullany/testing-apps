@@ -84,26 +84,26 @@ class TestTempTracker(unittest.TestCase):
         self.assertEqual(temp_data[3][1], result[1])
 
 
-    def test_check_true(self):
-        """Test that the temperature has exceeded safe values--positive test case"""
-
-        temp_data = [(83.00, time.localtime()), (83.00, time.localtime()),
-                     (83.00, time.localtime()), (83.00, time.localtime()), (83.00, time.localtime())]
-
-        tt = TemperatureTracker()
-        result = tt.check_from(temp_data)
-        self.assertEqual(result, True)
-
-
-    def test_check_false(self):
-        """Test that the temperature has exceeded safe values--negative test case"""
-
-        temp_data = [(3.00, time.localtime()), (2.00, time.localtime()),
-                     (3.00, time.localtime()), (6.00, time.localtime()), (81.00, time.localtime())]
-
-        tt = TemperatureTracker()
-        result = tt.check_from(temp_data)
-        self.assertEqual(result, False)
+    # def test_check_true(self):
+    #     """Test that the temperature has exceeded safe values--positive test case"""
+    #
+    #     temp_data = [(83.00, time.localtime()), (83.00, time.localtime()),
+    #                  (83.00, time.localtime()), (83.00, time.localtime()), (83.00, time.localtime())]
+    #
+    #     tt = TemperatureTracker()
+    #     result = tt.check_from(temp_data)
+    #     self.assertEqual(result, True)
+    #
+    #
+    # def test_check_false(self):
+    #     """Test that the temperature has exceeded safe values--negative test case"""
+    #
+    #     temp_data = [(3.00, time.localtime()), (2.00, time.localtime()),
+    #                  (3.00, time.localtime()), (6.00, time.localtime()), (81.00, time.localtime())]
+    #
+    #     tt = TemperatureTracker()
+    #     result = tt.check_from(temp_data)
+    #     self.assertEqual(result, False)
 
 
     def test_get_start_true(self):
@@ -183,6 +183,27 @@ class TestTempTracker(unittest.TestCase):
         tt = TemperatureTracker()
         result = tt.temperatures()
         self.assertEqual(result, [])
+
+
+    def test_update_from(self):
+        temp_data = [(1.00, time.localtime()), (2.00, time.localtime()),
+                     (3.00, time.localtime()), (4.00, time.localtime())]
+
+        temp_data2 = [(1.00, time.localtime()), (2.00, time.localtime()),
+                     (3.00, time.localtime()), (4.00, time.localtime()), (6.00, time.localtime())]
+
+        tt = TemperatureTracker(temp_data)
+        tt.update_from((5.00, time.localtime()), temp_data)
+        self.assertEqual(5, len(tt.temperatures()))
+
+        # test overwriting the list with an empty list and appending a new reading
+        tt.update_from((5.00, time.localtime()), [])
+        self.assertEqual(1, len(tt.temperatures()))
+
+        tt.update_from((5.00, time.localtime()), temp_data2)
+        self.assertEqual(6, len(tt.temperatures()))
+
+
 
 if __name__ == '__main__':
     unittest.main()

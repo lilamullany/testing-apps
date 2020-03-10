@@ -12,37 +12,37 @@ class TemperatureTracker:
         self.stop_timestamp = None
 
 
-    def check_from(self, temp_time_list):
-        """Returns True if the latest temperature was above MAX_TEMP_RASP4
+    # def check_from(self, temp_time_list):
+    #     """Returns True if the latest temperature was above MAX_TEMP_RASP4
+    #
+    #
+    #     Returns
+    #     -------
+    #     bool
+    #         True if the latest temperature was greater than MAX_TEMP_RASP4
+    #
+    #     """
+    #
+    #     # NOTE: I used the latest reading so it was testable.
+    #     if temp_time_list[-1][0] > self.MAX_TEMP_RASP4:
+    #         return True
+    #
+    #     return False
 
 
-        Returns
-        -------
-        bool
-            True if the latest temperature was greater than MAX_TEMP_RASP4
 
-        """
-
-        # NOTE: I used the latest reading so it was testable.
-        if temp_time_list[-1][0] > self.MAX_TEMP_RASP4:
-            return True
-
-        return False
-
-
-
-    def check(self):
-        """Returns True if the latest temperature was above MAX_TEMP_RASP4
-
-        Calls check_from() using the instance list
-
-        Returns
-        -------
-        bool
-            True if the latest temperature was greater than MAX_TEMP_RASP4
-
-        """
-        return self.check_from(self.temp_time_list)
+    # def check(self):
+    #     """Returns True if the latest temperature was above MAX_TEMP_RASP4
+    #
+    #     Calls check_from() using the instance list
+    #
+    #     Returns
+    #     -------
+    #     bool
+    #         True if the latest temperature was greater than MAX_TEMP_RASP4
+    #
+    #     """
+    #     return self.check_from(self.temp_time_list)
 
 
 
@@ -135,29 +135,48 @@ class TemperatureTracker:
 
 
     def update(self):
-        """Updates the object argument list with the current CPU temperature
-        as well as the current time.
+        """Updates the temperature readings
 
-        Calls the update_from() function, using the instance list as an input parameter
+        Calculates the current temperature reading, calls the update_from() function,
+        using the instance list as an input parameter, as well as the new temperature reading.
 
         """
-        self.update_from(self.temp_time_list)
-
-
-
-    def update_from(self, temp_time_list):
-        """Updates the input argument list with the current CPU temperature
-        as well as the current time.
-
-        Takes a new temperature reading and stores this reading along with
-        the current time in a tuple.
-
-        Updates the instance list by appending this new tuple.
-        """
-
         cpu = CPUTemperature()
-        new_reading = (cpu.temperature,  time.localtime())
+        new_reading = (cpu.temperature, time.localtime())
+
+        self.update_from(new_reading, self.temp_time_list)
+
+
+
+    def update_from(self, new_reading, temp_time_list):
+        """Takes a new temperature reading and appends this to
+        the input list.
+
+        Updates the instance list with the appended list.
+
+        Parameters
+        -------
+        new_reading : (float, time)
+        temp_time_list : [(float, time)]
+        """
         temp_time_list.append(new_reading)
+
+        # update the instance list with the new set of readings
+        self.temp_time_list = temp_time_list
+
+
+
+    def now(self):
+        """Calculates and returns the current temperature and timestamp
+
+        Returns
+        -------
+        new_reading : (float, time)
+            The current temperature and time
+        """
+        cpu = CPUTemperature()
+        new_reading = (cpu.temperature, time.localtime())
+        return new_reading
 
 
 

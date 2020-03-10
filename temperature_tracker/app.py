@@ -95,6 +95,16 @@ def main():
                 # get an instance of the cpu temperature
                 temperature_tracker.update()
 
+                # gather the current temperature and timestamp and print it
+                now = temperature_tracker.now()
+                print(str(now[0]) + " " + time.strftime('%Y-%m-%d %H:%M:%S', now[1]))
+
+
+                if now[0] < temperature_tracker.MAX_TEMP_RASP4:
+                    print("Temperature is safe")
+                else:
+                    print("You should shut down")
+
                 # send the image frame and the predictions for both
                 # prediction models to the output stream
                 streamer.send_data(display_frame, text)

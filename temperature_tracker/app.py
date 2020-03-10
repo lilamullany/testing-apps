@@ -101,9 +101,11 @@ def main():
                 # gather the current temperature and timestamp and print it
                 now = temperature_tracker.now()
 
+                # optional log block showing current temperature
                 if should_log == True:
                     print(str(now[0]) + " " + time.strftime('%Y-%m-%d %H:%M:%S', now[1]))
-                    
+
+                    # details whether the temperature is safe for a Raspberry Pi 4
                     if now[0] < temperature_tracker.MAX_TEMP_RASP4:
                         print("Temperature is safe")
                     else:

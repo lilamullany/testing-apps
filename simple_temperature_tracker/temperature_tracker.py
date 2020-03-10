@@ -4,7 +4,7 @@ import time
 
 class TemperatureTracker:
 
-    MAX_TEMP_RASP4 = 50
+    MAX_TEMP_RASP4 = 82.0
 
     def __init__(self, temp_time_list=[]):
         self.temp_time_list = temp_time_list

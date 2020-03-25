@@ -2,6 +2,7 @@ import cv2
 import edgeiq
 import time
 import numpy as np
+import cv2 as cv
 """
 Use semantic segmentation to determine a class for each pixel of an image.
 The classes of objects detected can be changed by selecting different models.
@@ -26,13 +27,13 @@ https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_a
 
 def main():
     semantic_segmentation = edgeiq.SemanticSegmentation(
-            "alwaysai/enet")
+            "alwaysai/fcn_alexnet_pascal_voc")
     semantic_segmentation.load(engine=edgeiq.Engine.DNN)
 
     obj_detect = edgeiq.ObjectDetection("alwaysai/mobilenet_ssd")
     obj_detect.load(engine=edgeiq.Engine.DNN)
 
-    labels_to_mask = ['Person', 'Pole', 'Rider']
+    labels_to_mask = ['person']
 
     print("Engine: {}".format(semantic_segmentation.engine))
     print("Accelerator: {}\n".format(semantic_segmentation.accelerator))
@@ -54,20 +55,26 @@ def main():
             time.sleep(2.0)
             fps.start()
 
+            last_non_detection = None
+
+
             # loop detection
             while True:
 
-                last_non_detection = None
 
                 # read in the video stream
                 frame = video_stream.read()
 
+
+                detector_results = obj_detect.detect_objects(frame, confidence_level=.1)
+
                 if last_non_detection is None:
                     last_non_detection = np.zeros(frame.shape)
 
+
                 segmentation_results = semantic_segmentation.segment_image(frame)
 
-                detector_results = obj_detect.detect_objects(frame, confidence_level=.5)
+
 
                 # Generate text to display on streamer
                 text = ["Model: {}".format(semantic_segmentation.model_id)]
@@ -76,23 +83,28 @@ def main():
                 text.append(semantic_segmentation.build_legend())
 
                 label_map = np.array(semantic_segmentation.labels)[segmentation_results.class_map]
-                # Setting to zero defaults to "Unlabeled"
+
                 filtered_class_map = np.zeros(segmentation_results.class_map.shape).astype(int)
 
                 for label in labels_to_mask:
                     filtered_class_map += segmentation_results.class_map * (label_map == label).astype(int)
 
-                # find the detected person(s) 
-                bool_class_map = (filtered_class_map > 0)
-
-                # blur the background
-                masked_frame = edgeiq.blur_objects(frame, detector_results.predictions)
-
-                # update the background image to have the detected person clearly displayed (in theory)
-                masked_frame[bool_class_map] = frame[bool_class_map].copy()
 
 
-                streamer.send_data(masked_frame, text)
+                # map that is people
+                detection_map = (filtered_class_map != 0)
+
+
+                # blur the background:
+                blur_frame = cv.blur(frame, (50, 50))
+
+                # create a new frame and replace pixels corresponding to the detected face
+                new_frame = blur_frame
+                new_frame[detection_map] = frame[detection_map].copy()
+                #out_frame = edgeiq.blend_images(blur_frame, new_frame, 0.5)
+
+
+                streamer.send_data(new_frame, text)
 
                 fps.update()
 

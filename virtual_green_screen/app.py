@@ -1,4 +1,3 @@
-import cv2
 import edgeiq
 import time
 import numpy as np
@@ -10,16 +9,13 @@ This particular starter application uses a model on the cityscape
 dataset (https://www.cityscapes-dataset.com/).
 The Cityscapes Dataset focuses on semantic understanding of urban street scenes,
 and is a favorite dataset for building autonomous car machine learning models.
-
 Different images can be used by updating the files in the *images/*
 directory. Note that when developing for a remote device, removing
 images in the local *images/* directory won't remove images from the
 device. They can be removed using the `aai app shell` command and
 deleting them from the *images/* directory on the remote device.
-
 To change the computer vision model, follow this guide:
 https://dashboard.alwaysai.co/docs/application_development/changing_the_model.html
-
 To change the engine and accelerator, follow this guide:
 https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_and_accelerator.html
 """
@@ -47,6 +43,8 @@ def main():
 
     fps = edgeiq.FPS()
 
+    
+
     try:
         with edgeiq.WebcamVideoStream(cam=0) as video_stream, \
                 edgeiq.Streamer() as streamer:
@@ -55,7 +53,6 @@ def main():
             time.sleep(2.0)
             fps.start()
 
-            last_non_detection = None
 
 
             # loop detection

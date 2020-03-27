@@ -1,3 +1,4 @@
+./temperature_tracker/__pycache__
 test_env/
 .idea
 ./rounding_edges/venv/

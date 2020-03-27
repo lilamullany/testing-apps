@@ -26,9 +26,6 @@ def main():
             "alwaysai/fcn_alexnet_pascal_voc")
     semantic_segmentation.load(engine=edgeiq.Engine.DNN)
 
-    obj_detect = edgeiq.ObjectDetection("alwaysai/mobilenet_ssd")
-    obj_detect.load(engine=edgeiq.Engine.DNN)
-
     labels_to_mask = ['person']
 
     print("Engine: {}".format(semantic_segmentation.engine))
@@ -36,14 +33,9 @@ def main():
     print("Model:\n{}\n".format(semantic_segmentation.model_id))
     print("Labels:\n{}\n".format(semantic_segmentation.labels))
 
-    # descriptions printed to console
-    print("Engine: {}".format(obj_detect.engine))
-    print("Accelerator: {}\n".format(obj_detect.accelerator))
-    print("Model:\n{}\n".format(obj_detect.model_id))
-
     fps = edgeiq.FPS()
 
-    
+    blur = False
 
     try:
         with edgeiq.WebcamVideoStream(cam=0) as video_stream, \
@@ -54,24 +46,13 @@ def main():
             fps.start()
 
 
-
             # loop detection
             while True:
-
 
                 # read in the video stream
                 frame = video_stream.read()
 
-
-                detector_results = obj_detect.detect_objects(frame, confidence_level=.1)
-
-                if last_non_detection is None:
-                    last_non_detection = np.zeros(frame.shape)
-
-
                 segmentation_results = semantic_segmentation.segment_image(frame)
-
-
 
                 # Generate text to display on streamer
                 text = ["Model: {}".format(semantic_segmentation.model_id)]
@@ -87,20 +68,26 @@ def main():
                     filtered_class_map += segmentation_results.class_map * (label_map == label).astype(int)
 
 
-
-                # map that is people
+                # just the part of the map that is people
                 detection_map = (filtered_class_map != 0)
 
+                if blur:
+                    # blur the background:
+                    new_frame = cv.blur(frame, (50, 50))
 
-                # blur the background:
-                blur_frame = cv.blur(frame, (50, 50))
+                else:
+                    # read in the image
+                    img = cv.imread('./images/mountain_pic.jpg')
 
-                # create a new frame and replace pixels corresponding to the detected face
-                new_frame = blur_frame
+                    # get 2D the dimensions of the frame (need to reverse for compatibility with cv2)
+                    shape = frame.shape[:2]
+
+                    # resize the image
+                    new_frame = cv.resize(img, (shape[1], shape[0]), interpolation=cv.INTER_NEAREST)
+
+
+                # replace the area of the new frame that corresponds to the person in the original
                 new_frame[detection_map] = frame[detection_map].copy()
-                #out_frame = edgeiq.blend_images(blur_frame, new_frame, 0.5)
-
-
                 streamer.send_data(new_frame, text)
 
                 fps.update()

@@ -2,5 +2,5 @@ test_env/
 .idea
 ./rounding_edges/venv/
 ./virtual_green_screen/venv/
-.rounding_edges/models/*
+./rounding_edges/models/*
 ./virtual_green_screen/models/*

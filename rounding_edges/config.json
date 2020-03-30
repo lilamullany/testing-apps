@@ -4,5 +4,5 @@
     "background_images" : "images/",
     "image" : "beach_pic.jpg",
     "blur" : true,
-    "smooth" : false
+    "smooth" : true
 }

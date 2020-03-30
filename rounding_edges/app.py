@@ -27,7 +27,6 @@ IMAGE = "image"
 TARGETS = "target_labels"
 BLUR = "blur"
 
-
 def load_json(filepath):
     # check that the file exsits and return the loaded json data
     if os.path.exists(filepath) == False:
@@ -35,8 +34,6 @@ def load_json(filepath):
 
     with open(filepath) as data:
         return json.load(data)
-
-
 
 def main():
     # load the configuration data from config.json
@@ -46,10 +43,8 @@ def main():
     background_image = config.get(BACKGROUND_IMAGES) + config.get(IMAGE)
     blur = config.get(BLUR)
 
-
     semantic_segmentation = edgeiq.SemanticSegmentation(model_id)
     semantic_segmentation.load(engine=edgeiq.Engine.DNN)
-
 
     print("Engine: {}".format(semantic_segmentation.engine))
     print("Accelerator: {}\n".format(semantic_segmentation.accelerator))
@@ -76,9 +71,6 @@ def main():
                 # Generate text to display on streamer
                 text = ["Model: {}".format(semantic_segmentation.model_id)]
                 text.append("Inference time: {:1.3f} s".format(results.duration))
-                text.append("Legend:")
-                text.append(semantic_segmentation.build_legend())
-
 
                 # build the color mask, making all colors the same except for background
                 semantic_segmentation.colors = [ (0,0,0) for i in semantic_segmentation.colors]
@@ -98,7 +90,7 @@ def main():
                 blended = edgeiq.blend_images(frame, blurred_mask, alpha=0.5)
 
                 # apply thresholding to partition image
-                blended[blended > 140] = 1
+                blended[blended > 128] = 1
 
                 # just the part of the map that is people
                 detection_map = (blended == 1)
@@ -123,7 +115,6 @@ def main():
 
                 if streamer.check_exit():
                     break
-
 
     finally:
         fps.stop()

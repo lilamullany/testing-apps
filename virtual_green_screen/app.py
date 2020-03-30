@@ -22,6 +22,7 @@ BACKGROUND_IMAGES = "background_images"
 IMAGE = "image"
 TARGETS = "target_labels"
 BLUR = "blur"
+BLUR_LEVEL = "blur_level"
 
 def load_json(filepath):
     # check that the file exsits and return the loaded json data
@@ -38,6 +39,7 @@ def main():
     model_id = config.get(MODEL_ID)
     background_image = config.get(BACKGROUND_IMAGES) + config.get(IMAGE)
     blur = config.get(BLUR)
+    blur_level = config.get(BLUR_LEVEL)
 
     semantic_segmentation = edgeiq.SemanticSegmentation(model_id)
     semantic_segmentation.load(engine=edgeiq.Engine.DNN)
@@ -80,7 +82,7 @@ def main():
 
                 if blur:
                     # blur the background:
-                    new_frame = cv.blur(frame, (100, 100))
+                    new_frame = cv.blur(frame, (blur_level, blur_level))
 
                 else:
                     # read in the image

@@ -3,12 +3,16 @@ import edgeiq
 import time
 import os
 import json
+import numpy as np
 
 """
 Use semantic segmentation to determine a class for each pixel of an image.
 This particular example app uses semantic segmentation to cut a person out
 of a frame and either blur the background or replace the background with an
 image.
+
+This app also has an option of smoothing our the edges of the segmentation,
+which can be done by toggling 'smooth' to true in the config.json file.
 
 To change the computer vision model, follow this guide:
 https://dashboard.alwaysai.co/docs/application_development/changing_the_model.html
@@ -18,14 +22,14 @@ https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_a
 """
 
 # Static keys for extracting data from config.json
-# see (https://medium.com/@jalakoo_83320/using-a-computer-vision-classifier-to-sort-images-333d5090c0b4)
-CONFIG_FILE = 'config.json'
-SEGMENTER = 'segmenter'
+CONFIG_FILE = "config.json"
+SEGMENTER = "segmenter"
 MODEL_ID = "model_id"
 BACKGROUND_IMAGES = "background_images"
 IMAGE = "image"
 TARGETS = "target_labels"
 BLUR = "blur"
+SMOOTH = "smooth"
 
 def load_json(filepath):
     # check that the file exsits and return the loaded json data
@@ -42,6 +46,7 @@ def main():
     model_id = config.get(MODEL_ID)
     background_image = config.get(BACKGROUND_IMAGES) + config.get(IMAGE)
     blur = config.get(BLUR)
+    smooth = config.get(SMOOTH)
 
     semantic_segmentation = edgeiq.SemanticSegmentation(model_id)
     semantic_segmentation.load(engine=edgeiq.Engine.DNN)
@@ -72,41 +77,54 @@ def main():
                 text = ["Model: {}".format(semantic_segmentation.model_id)]
                 text.append("Inference time: {:1.3f} s".format(results.duration))
 
-                # build the color mask, making all colors the same except for background
-                semantic_segmentation.colors = [ (0,0,0) for i in semantic_segmentation.colors]
+                if smooth:
+                    # build the color mask, making all colors the same except for background
+                    semantic_segmentation.colors = [ (0,0,0) for i in semantic_segmentation.colors]
 
-                # iterate over all the desired items to identify, labeling those white
-                for label in labels_to_mask:
-                    index = semantic_segmentation.labels.index(label)
-                    semantic_segmentation.colors[index] = (255,255,255)
+                    # iterate over all the desired items to identify, labeling those white
+                    for label in labels_to_mask:
+                        index = semantic_segmentation.labels.index(label)
+                        semantic_segmentation.colors[index] = (255,255,255)
 
-                # build the color mask
-                mask = semantic_segmentation.build_image_mask(results.class_map)
+                    # build the color mask
+                    mask = semantic_segmentation.build_image_mask(results.class_map)
 
-                # apply smoothing to the mask
-                blurred_mask = cv.blur(mask, (100, 100))
+                    # apply smoothing to the mask
+                    blurred_mask = cv.blur(mask, (100, 100))
 
-                # apply the color mask to the image
-                blended = edgeiq.blend_images(frame, blurred_mask, alpha=0.5)
+                    # apply the color mask to the image
+                    blended = edgeiq.blend_images(frame, blurred_mask, alpha=0.5)
 
-                # apply thresholding to partition image
-                blended[blended > 128] = 1
+                    # apply thresholding to partition image
+                    blended[blended > 128] = 1
 
-                # just the part of the map that is people
-                detection_map = (blended == 1)
-
-                if blur:
-                    new_frame = cv.blur(frame, (100, 100))
-
+                    # just the part of the map that is people
+                    detection_map = (blended == 1)
                 else:
-                    # read in the image
-                    img = cv.imread(background_image)
+                    segmentation_results = semantic_segmentation.segment_image(frame)
 
-                    # get 2D the dimensions of the frame (need to reverse for compatibility with cv2)
-                    shape = frame.shape[:2]
+                    label_map = np.array(semantic_segmentation.labels)[segmentation_results.class_map]
 
-                    # resize the image
-                    new_frame = cv.resize(img, (shape[1], shape[0]), interpolation=cv.INTER_NEAREST)
+                    filtered_class_map = np.zeros(segmentation_results.class_map.shape).astype(int)
+
+                    for label in labels_to_mask:
+                        filtered_class_map += segmentation_results.class_map * (label_map == label).astype(int)
+
+                    # just the part of the map that is people
+                    detection_map = (filtered_class_map != 0)
+
+                    if blur:
+                        new_frame = cv.blur(frame, (100, 100))
+
+                    else:
+                        # read in the image
+                        img = cv.imread(background_image)
+
+                        # get 2D the dimensions of the frame (need to reverse for compatibility with cv2)
+                        shape = frame.shape[:2]
+
+                        # resize the image
+                        new_frame = cv.resize(img, (shape[1], shape[0]), interpolation=cv.INTER_NEAREST)
 
                 new_frame[detection_map] = frame[detection_map].copy()
                 streamer.send_data(new_frame, text)

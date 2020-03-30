@@ -1,7 +1,6 @@
 {
   "models": {
-    "alwaysai/fcn_alexnet_pascal_voc": 1,
-    "alwaysai/mobilenet_ssd": 1
+    "alwaysai/fcn_alexnet_pascal_voc": 1
   },
   "scripts": {
     "start": "python app.py"

@@ -3,6 +3,5 @@
     "target_labels" : ["person"],
     "background_images" : "images/",
     "image" : "beach_pic.jpg",
-    "blur" : true,
-    "smooth" : false
+    "blur" : true
 }

@@ -1,20 +1,14 @@
 import cv2 as cv
 import edgeiq
 import time
-import numpy as np
+import os
+import json
+
 """
 Use semantic segmentation to determine a class for each pixel of an image.
-The classes of objects detected can be changed by selecting different models.
-This particular starter application uses a model on the cityscape
-dataset (https://www.cityscapes-dataset.com/).
-The Cityscapes Dataset focuses on semantic understanding of urban street scenes,
-and is a favorite dataset for building autonomous car machine learning models.
-
-Different images can be used by updating the files in the *images/*
-directory. Note that when developing for a remote device, removing
-images in the local *images/* directory won't remove images from the
-device. They can be removed using the `aai app shell` command and
-deleting them from the *images/* directory on the remote device.
+This particular example app uses semantic segmentation to cut a person out
+of a frame and either blur the background or replace the background with an
+image.
 
 To change the computer vision model, follow this guide:
 https://dashboard.alwaysai.co/docs/application_development/changing_the_model.html
@@ -23,13 +17,39 @@ To change the engine and accelerator, follow this guide:
 https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_and_accelerator.html
 """
 
+# Static keys for extracting data from config.json
+# see (https://medium.com/@jalakoo_83320/using-a-computer-vision-classifier-to-sort-images-333d5090c0b4)
+CONFIG_FILE = 'config.json'
+SEGMENTER = 'segmenter'
+MODEL_ID = "model_id"
+BACKGROUND_IMAGES = "background_images"
+IMAGE = "image"
+TARGETS = "target_labels"
+BLUR = "blur"
+
+
+def load_json(filepath):
+    # check that the file exsits and return the loaded json data
+    if os.path.exists(filepath) == False:
+        raise Exception('File at {} does not exist'.format(filepath))
+
+    with open(filepath) as data:
+        return json.load(data)
+
+
 
 def main():
-    semantic_segmentation = edgeiq.SemanticSegmentation(
-        "alwaysai/fcn_alexnet_pascal_voc")
+    # load the configuration data from config.json
+    config = load_json(CONFIG_FILE)
+    labels_to_mask = config.get(TARGETS)
+    model_id = config.get(MODEL_ID)
+    background_image = config.get(BACKGROUND_IMAGES) + config.get(IMAGE)
+    blur = config.get(BLUR)
+
+
+    semantic_segmentation = edgeiq.SemanticSegmentation(model_id)
     semantic_segmentation.load(engine=edgeiq.Engine.DNN)
 
-    labels_to_mask = ['person']
 
     print("Engine: {}".format(semantic_segmentation.engine))
     print("Accelerator: {}\n".format(semantic_segmentation.accelerator))
@@ -37,8 +57,6 @@ def main():
     print("Labels:\n{}\n".format(semantic_segmentation.labels))
 
     fps = edgeiq.FPS()
-
-    blur = False
 
     try:
         with edgeiq.WebcamVideoStream(cam=0) as video_stream, \
@@ -65,8 +83,12 @@ def main():
                 # build the color mask, making all colors the same except for background
                 semantic_segmentation.colors = [ (0,0,0) for i in semantic_segmentation.colors]
 
-                index = semantic_segmentation.labels.index("person")
-                semantic_segmentation.colors[index] = (255,255,255)
+                # iterate over all the desired items to identify, labeling those white
+                for label in labels_to_mask:
+                    index = semantic_segmentation.labels.index(label)
+                    semantic_segmentation.colors[index] = (255,255,255)
+
+                # build the color mask
                 mask = semantic_segmentation.build_image_mask(results.class_map)
 
                 # apply smoothing to the mask
@@ -75,8 +97,8 @@ def main():
                 # apply the color mask to the image
                 blended = edgeiq.blend_images(frame, blurred_mask, alpha=0.5)
 
-                # threshold to get back to a two-color mask and cut out the image where color != black
-                blended[blended > 128] = 1
+                # apply thresholding to partition image
+                blended[blended > 140] = 1
 
                 # just the part of the map that is people
                 detection_map = (blended == 1)
@@ -86,7 +108,7 @@ def main():
 
                 else:
                     # read in the image
-                    img = cv.imread('./images/mountain_pic.jpg')
+                    img = cv.imread(background_image)
 
                     # get 2D the dimensions of the frame (need to reverse for compatibility with cv2)
                     shape = frame.shape[:2]

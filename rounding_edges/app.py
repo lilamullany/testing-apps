@@ -30,6 +30,7 @@ IMAGE = "image"
 TARGETS = "target_labels"
 BLUR = "blur"
 SMOOTH = "smooth"
+BLUR_LEVEL = "blur_level"
 
 def load_json(filepath):
     # check that the file exsits and return the loaded json data
@@ -47,6 +48,7 @@ def main():
     background_image = config.get(BACKGROUND_IMAGES) + config.get(IMAGE)
     blur = config.get(BLUR)
     smooth = config.get(SMOOTH)
+    blur_level = config.get(BLUR_LEVEL)
 
     semantic_segmentation = edgeiq.SemanticSegmentation(model_id)
     semantic_segmentation.load(engine=edgeiq.Engine.DNN)
@@ -77,54 +79,55 @@ def main():
                 text = ["Model: {}".format(semantic_segmentation.model_id)]
                 text.append("Inference time: {:1.3f} s".format(results.duration))
 
-                if smooth:
+
+                #if smooth:
                     # build the color mask, making all colors the same except for background
-                    semantic_segmentation.colors = [ (0,0,0) for i in semantic_segmentation.colors]
+                semantic_segmentation.colors = [ (0,0,0) for i in semantic_segmentation.colors]
 
-                    # iterate over all the desired items to identify, labeling those white
-                    for label in labels_to_mask:
-                        index = semantic_segmentation.labels.index(label)
-                        semantic_segmentation.colors[index] = (255,255,255)
+                # iterate over all the desired items to identify, labeling those white
+                for label in labels_to_mask:
+                    index = semantic_segmentation.labels.index(label)
+                    semantic_segmentation.colors[index] = (255,255,255)
 
-                    # build the color mask
-                    mask = semantic_segmentation.build_image_mask(results.class_map)
+                # build the color mask
+                mask = semantic_segmentation.build_image_mask(results.class_map)
 
-                    # apply smoothing to the mask
-                    blurred_mask = cv.blur(mask, (100, 100))
+                # apply smoothing to the mask
+                blurred_mask = cv.blur(mask, (blur_level, blur_level))
 
-                    # apply the color mask to the image
-                    blended = edgeiq.blend_images(frame, blurred_mask, alpha=0.5)
+                # apply the color mask to the image
+                blended = edgeiq.blend_images(frame, blurred_mask, alpha=0.5)
 
-                    # apply thresholding to partition image
-                    blended[blended > 128] = 1
+                # apply thresholding to partition image
+                blended[blended > 128] = 1
 
-                    # just the part of the map that is people
-                    detection_map = (blended == 1)
+                # just the part of the map that is people
+                detection_map = (blended == 1)
+                # else:
+                #     segmentation_results = semantic_segmentation.segment_image(frame)
+                #
+                #     label_map = np.array(semantic_segmentation.labels)[segmentation_results.class_map]
+                #
+                #     filtered_class_map = np.zeros(segmentation_results.class_map.shape).astype(int)
+                #
+                #     for label in labels_to_mask:
+                #         filtered_class_map += segmentation_results.class_map * (label_map == label).astype(int)
+                #
+                #     # just the part of the map that is people
+                #     detection_map = (filtered_class_map != 0)
+
+                if blur:
+                    new_frame = cv.blur(frame, (blur_level, blur_level))
+
                 else:
-                    segmentation_results = semantic_segmentation.segment_image(frame)
+                    # read in the image
+                    img = cv.imread(background_image)
 
-                    label_map = np.array(semantic_segmentation.labels)[segmentation_results.class_map]
+                    # get 2D the dimensions of the frame (need to reverse for compatibility with cv2)
+                    shape = frame.shape[:2]
 
-                    filtered_class_map = np.zeros(segmentation_results.class_map.shape).astype(int)
-
-                    for label in labels_to_mask:
-                        filtered_class_map += segmentation_results.class_map * (label_map == label).astype(int)
-
-                    # just the part of the map that is people
-                    detection_map = (filtered_class_map != 0)
-
-                    if blur:
-                        new_frame = cv.blur(frame, (100, 100))
-
-                    else:
-                        # read in the image
-                        img = cv.imread(background_image)
-
-                        # get 2D the dimensions of the frame (need to reverse for compatibility with cv2)
-                        shape = frame.shape[:2]
-
-                        # resize the image
-                        new_frame = cv.resize(img, (shape[1], shape[0]), interpolation=cv.INTER_NEAREST)
+                    # resize the image
+                    new_frame = cv.resize(img, (shape[1], shape[0]), interpolation=cv.INTER_NEAREST)
 
                 new_frame[detection_map] = frame[detection_map].copy()
                 streamer.send_data(new_frame, text)

@@ -25,7 +25,7 @@ BLUR = "blur"
 BLUR_LEVEL = "blur_level"
 
 def load_json(filepath):
-    # check that the file exsits and return the loaded json data
+    # check that the file exists and return the loaded json data
     if os.path.exists(filepath) == False:
         raise Exception('File at {} does not exist'.format(filepath))
 

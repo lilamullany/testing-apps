@@ -29,7 +29,7 @@ BACKGROUND_IMAGES = "background_images"
 IMAGE = "image"
 TARGETS = "target_labels"
 BLUR = "blur"
-SMOOTH = "smooth"
+USE_BACKGROUND_IMAGE = "use_background_image"
 BLUR_LEVEL = "blur_level"
 
 def load_json(filepath):
@@ -59,7 +59,7 @@ def main():
     model_id = config.get(MODEL_ID)
     background_image = config.get(BACKGROUND_IMAGES) + config.get(IMAGE)
     blur = config.get(BLUR)
-    smooth = config.get(SMOOTH)
+    use_background_image = config.get(USE_BACKGROUND_IMAGE)
     blur_level = config.get(BLUR_LEVEL)
 
     semantic_segmentation = edgeiq.SemanticSegmentation(model_id)
@@ -117,23 +117,10 @@ def main():
                 # apply smoothing to the mask
                 mask = cv.blur(mask, (blur_level, blur_level))
 
-                # else:
-                #     segmentation_results = semantic_segmentation.segment_image(frame)
-                #
-                #     label_map = np.array(semantic_segmentation.labels)[segmentation_results.class_map]
-                #
-                #     filtered_class_map = np.zeros(segmentation_results.class_map.shape).astype(int)
-                #
-                #     for label in labels_to_mask:
-                #         filtered_class_map += segmentation_results.class_map * (label_map == label).astype(int)
-                #
-                #     # just the part of the map that is people
-                #     detection_map = (filtered_class_map != 0)
+                # the background defaults to just the original frame
+                background = frame
 
-                if blur:
-                    background = cv.blur(frame, (blur_level, blur_level))
-
-                else:
+                if use_background_image:
                     # read in the image
                     img = cv.imread(background_image)
 
@@ -142,6 +129,10 @@ def main():
 
                     # resize the image
                     background = cv.resize(img, (shape[1], shape[0]), interpolation=cv.INTER_NEAREST)
+
+                if blur:
+                    # blur the background
+                    background = cv.blur(background, (blur_level, blur_level))
 
                 frame = overlay_image(frame, background, mask)
 

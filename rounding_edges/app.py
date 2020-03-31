@@ -40,6 +40,18 @@ def load_json(filepath):
     with open(filepath) as data:
         return json.load(data)
 
+
+def overlay_image(foreground_image, background_image, foreground_mask):
+    background_mask = cv.cvtColor(
+            255 - cv.cvtColor(foreground_mask, cv.COLOR_BGR2GRAY),
+            cv.COLOR_GRAY2BGR)
+
+    masked_fg = (foreground_image * (1 / 255.0)) * (foreground_mask * (1 / 255.0))
+    masked_bg = (background_image * (1 / 255.0)) * (background_mask * (1 / 255.0))
+
+    return np.uint8(cv.addWeighted(masked_fg, 255.0, masked_bg, 255.0, 0.0))
+
+
 def main():
     # load the configuration data from config.json
     config = load_json(CONFIG_FILE)
@@ -92,17 +104,19 @@ def main():
                 # build the color mask
                 mask = semantic_segmentation.build_image_mask(results.class_map)
 
+                # Enlarge the mask
+                dilatation_size = 15
+                # Options: cv.MORPH_RECT, cv.MORPH_CROSS, cv.MORPH_ELLIPSE
+                dilatation_type = cv.MORPH_CROSS
+                element = cv.getStructuringElement(
+                        dilatation_type,
+                        (2*dilatation_size + 1, 2*dilatation_size+1),
+                        (dilatation_size, dilatation_size))
+                mask = cv.dilate(mask, element)
+
                 # apply smoothing to the mask
-                blurred_mask = cv.blur(mask, (blur_level, blur_level))
+                mask = cv.blur(mask, (blur_level, blur_level))
 
-                # apply the color mask to the image
-                blended = edgeiq.blend_images(frame, blurred_mask, alpha=0.5)
-
-                # apply thresholding to partition image
-                blended[blended > 128] = 1
-
-                # just the part of the map that is people
-                detection_map = (blended == 1)
                 # else:
                 #     segmentation_results = semantic_segmentation.segment_image(frame)
                 #
@@ -117,7 +131,7 @@ def main():
                 #     detection_map = (filtered_class_map != 0)
 
                 if blur:
-                    new_frame = cv.blur(frame, (blur_level, blur_level))
+                    background = cv.blur(frame, (blur_level, blur_level))
 
                 else:
                     # read in the image
@@ -127,10 +141,11 @@ def main():
                     shape = frame.shape[:2]
 
                     # resize the image
-                    new_frame = cv.resize(img, (shape[1], shape[0]), interpolation=cv.INTER_NEAREST)
+                    background = cv.resize(img, (shape[1], shape[0]), interpolation=cv.INTER_NEAREST)
 
-                new_frame[detection_map] = frame[detection_map].copy()
-                streamer.send_data(new_frame, text)
+                frame = overlay_image(frame, background, mask)
+
+                streamer.send_data(frame, text)
 
                 fps.update()
 

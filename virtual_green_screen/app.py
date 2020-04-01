@@ -23,6 +23,7 @@ IMAGE = "image"
 TARGETS = "target_labels"
 BLUR = "blur"
 BLUR_LEVEL = "blur_level"
+USE_BACKGROUND_IMAGE = "use_background_image"
 
 def load_json(filepath):
     # check that the file exists and return the loaded json data
@@ -40,6 +41,7 @@ def main():
     background_image = config.get(BACKGROUND_IMAGES) + config.get(IMAGE)
     blur = config.get(BLUR)
     blur_level = config.get(BLUR_LEVEL)
+    use_background_image = config.get(USE_BACKGROUND_IMAGE)
 
     semantic_segmentation = edgeiq.SemanticSegmentation(model_id)
     semantic_segmentation.load(engine=edgeiq.Engine.DNN)
@@ -80,11 +82,10 @@ def main():
                 # just the part of the map that is people
                 detection_map = (filtered_class_map != 0)
 
-                if blur:
-                    # blur the background:
-                    new_frame = cv.blur(frame, (blur_level, blur_level))
+                # the background defaults to just the original frame
+                background = frame
 
-                else:
+                if use_background_image:
                     # read in the image
                     img = cv.imread(background_image)
 
@@ -92,11 +93,15 @@ def main():
                     shape = frame.shape[:2]
 
                     # resize the image
-                    new_frame = cv.resize(img, (shape[1], shape[0]), interpolation=cv.INTER_NEAREST)
+                    background = cv.resize(img, (shape[1], shape[0]), interpolation=cv.INTER_NEAREST)
+
+                if blur:
+                    # blur the background:
+                    background = cv.blur(background, (blur_level, blur_level))
 
                 # replace the area of the new frame that corresponds to the person in the original
-                new_frame[detection_map] = frame[detection_map].copy()
-                streamer.send_data(new_frame, text)
+                background[detection_map] = frame[detection_map].copy()
+                streamer.send_data(background, text)
 
                 fps.update()
 

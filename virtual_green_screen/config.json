@@ -4,5 +4,6 @@
     "background_images" : "images/",
     "image" : "beach_pic.jpg",
     "blur" : true,
-    "blur_level" : 35 
+    "blur_level" : 35,
+    "use_background_image" : true 
 }

@@ -92,8 +92,7 @@ def main():
                 text.append("Inference time: {:1.3f} s".format(results.duration))
 
 
-                #if smooth:
-                    # build the color mask, making all colors the same except for background
+                # build the color mask, making all colors the same except for background
                 semantic_segmentation.colors = [ (0,0,0) for i in semantic_segmentation.colors]
 
                 # iterate over all the desired items to identify, labeling those white

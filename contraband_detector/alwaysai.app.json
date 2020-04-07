@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "start": "python app.py"
+  },
+  "models": {
+    "alwaysai/ssd_inception_v2_coco_2018_01_28": 1,
+    "alwaysai/ssd_mobilenet_v2_oidv4": 1
+
+  }
+}

@@ -84,7 +84,7 @@ def main():
                         time.sleep(0.25)
                    
                     # send the collection of contraband detection points (string and video frame) to the streamer
-                    text.append(contraband_summary.get_contraband_string())
+                    text =contraband_summary.get_contraband_string()
                     streamer.send_data(frame, text)
 
                     fps.update()

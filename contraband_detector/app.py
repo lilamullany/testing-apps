@@ -61,8 +61,9 @@ def main():
             while True:
                 frame = video_stream.read()
 
-                text = [""]
                 frame_count += 1
+
+                text = [""]
 
                 if frame_count % 50 == 0:
 
@@ -73,14 +74,17 @@ def main():
 
                         # append each prediction
                         for prediction in results.predictions:
+                            predictions_to_markup = []
                             if (prediction.label.strip() in detected_contraband):
                                 contraband_summary.contraband_alert(prediction.label, frame)
+                                predictions_to_markup.append(prediction)
+
+                            frame = edgeiq.markup_image(frame, predictions_to_markup)  
 
                         time.sleep(0.25)
                    
                     # send the collection of contraband detection points (string and video frame) to the streamer
-                    frame = contraband_summary.get_contraband_frame_summary()
-                    text = contraband_summary.get_contraband_objects_summary()
+                    text.append(contraband_summary.get_contraband_string())
                     streamer.send_data(frame, text)
 
                     fps.update()

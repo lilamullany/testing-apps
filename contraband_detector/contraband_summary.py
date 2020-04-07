@@ -2,14 +2,13 @@ import time
 import numpy as np
 
 class ContrabandSummary:
-	def __init__(self):
-		self.contraband_detections = []
+    def __init__(self):
+        self.contraband = ""
 
 
-	def contraband_alert(self, contraband, frame):
-		"""
-        Appends the contraband item, the time the alert was called, and the frame
-        to the list of detected contraband.
+    def contraband_alert(self, contraband, frame):
+        """
+        Prints the detection to the console. Input frame can be saved to disk.
 
         Parameters
         -------
@@ -17,41 +16,22 @@ class ContrabandSummary:
             The label of the detected object
 
         frame: []
-        	A numpy array of the moment the contraband was detected
+            A numpy array of the moment the contraband was detected
         """
-		new_tuple = (contraband, time.localtime(), frame)
-		self.contraband_detections.append(new_tuple)
+        self.contraband = contraband
+        print(self.get_contraband_string())
 
 
-	def get_contraband_frame_summary(self):
-		"""
-        Returns all of the frames when a contraband item was detected
+    def get_contraband_string(self):
+        """
+        Returns a string describing all of the detected contraband
 
         Returns
         -------
-        []
-            The concatenated numpy array of all stored detection frames
+        String
+            A string describing all of the detected contraband and the time of detection
         """
-		if self.contraband_detections:
-			new_frame = self.contraband_detections[0][2]
-			for contraband, time, frame in self.contraband_detections:
-				new_frame = np.concatenate((new_frame, frame))
-			return new_frame
-
-
-	def get_contraband_objects_summary(self):
-		"""
-        Returns a list of strings describing all of the detected contraband
-
-        Returns
-        -------
-        []
-            A list of text describing all of the detected contraband and the time of detection
-        """
-		contraband_string = [""]
-		for contraband, detect_time, frame in self.contraband_detections:
-			string_time = time.strftime('%Y-%m-%d %H:%M:%S', detect_time)
-			contraband_string.append(contraband + " detected at " + string_time + "\n")
-		return contraband_string
+        contraband_string = "contraband " + self.contraband + " detected at " + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        return contraband_string
 
 

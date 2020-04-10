@@ -19,6 +19,10 @@ https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_a
 """
 
 def main():
+    # The current frame index
+    frame_idx = 0
+    # The number of frames to skip before running detector
+    detect_period = 30
 
     # if you would like to test an additional model, add one to the list below:
     models = ["alwaysai/ssd_mobilenet_v2_oidv4","alwaysai/ssd_inception_v2_coco_2018_01_28"]
@@ -46,6 +50,7 @@ def main():
         print("Accelerator: {}\n".format(obj_detect.accelerator))
         print("Labels:\n{}\n".format(obj_detect.labels))
 
+    tracker = edgeiq.CorrelationTracker(max_objects=5)
     fps = edgeiq.FPS()
 
     try:
@@ -61,33 +66,45 @@ def main():
             while True:
                 frame = video_stream.read()
 
-                frame_count += 1
-
                 text = [""]
 
-                if frame_count % 50 == 0:
+                predictions_to_markup = []
+
+                if frame_idx % detect_period == 0:
 
                     # gather data from the all the detectors 
                     for i in range(0, len(detectors)):
                         results = detectors[i].detect_objects(
                             frame, confidence_level=.2)
 
+                        # Stop tracking old objects
+                        if tracker.count:
+                            tracker.stop_all()
+
                         # append each prediction
                         for prediction in results.predictions:
-                            predictions_to_markup = []
+
                             if (prediction.label.strip() in detected_contraband):
                                 contraband_summary.contraband_alert(prediction.label, frame)
                                 predictions_to_markup.append(prediction)
 
-                            frame = edgeiq.markup_image(frame, predictions_to_markup)  
+                                #frame = edgeiq.markup_image(frame, predictions_to_markup) 
+                                tracker.start(frame, prediction) 
 
-                        time.sleep(0.25)
+                else:
+                    if tracker.count:
+                        predictions_to_markup = tracker.update(frame)
+
+                frame = edgeiq.markup_image(
+                        frame, predictions_to_markup, show_labels=True,
+                        show_confidences=False, colors=obj_detect.colors)
                    
-                    # send the collection of contraband detection points (string and video frame) to the streamer
-                    text =contraband_summary.get_contraband_string()
-                    streamer.send_data(frame, text)
-
-                    fps.update()
+                # send the collection of contraband detection points (string and video frame) to the streamer
+                text =contraband_summary.get_contraband_string()
+                
+                streamer.send_data(frame, text)
+                frame_idx += 1
+                fps.update()
 
                 if streamer.check_exit():
                     break

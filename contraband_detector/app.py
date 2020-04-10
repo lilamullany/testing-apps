@@ -22,7 +22,7 @@ def main():
     # The current frame index
     frame_idx = 0
     # The number of frames to skip before running detector
-    detect_period = 30
+    detect_period = 50
 
     # if you would like to test an additional model, add one to the list below:
     models = ["alwaysai/ssd_mobilenet_v2_oidv4","alwaysai/ssd_inception_v2_coco_2018_01_28"]

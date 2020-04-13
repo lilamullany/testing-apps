@@ -3,13 +3,16 @@ import edgeiq
 import numpy
 from contraband_summary import ContrabandSummary 
 """
-Simultaneously utilize two object detection models and present the results to
-a single output stream.
+Detect items that are considered contraband for working or learning 
+from home, namely cell phones, headphones, books, etc. 
 
-The models used in this app are ssd_inception_v2_coco_2018_01_28, which can detect
-numerous inanimate objects, such as bikes, utensils, animals, etc., and the
-the mobilenet_ssd, which is a smaller library but detects some larger objects that
-ssd_inception_v2_coco_2018_01_28 does not, such as a sofa, a train, or an airplane.
+This example app uses two detection models in order to increase the
+number of detections as well as the types of detections. The models this 
+app uses are "alwaysai/ssd_mobilenet_v2_oidv4" and 
+"alwaysai/ssd_inception_v2_coco_2018_01_28".
+
+Additionally, this app uses a object tracker, which reduces the overhead 
+associated with inference time and lessens the strain on your deployment device. 
 
 To change the computer vision model, follow this guide:
 https://dashboard.alwaysai.co/docs/application_development/changing_the_model.html
@@ -19,22 +22,24 @@ https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_a
 """
 
 def main():
+
     # The current frame index
     frame_idx = 0
+
     # The number of frames to skip before running detector
     detect_period = 50
 
     # if you would like to test an additional model, add one to the list below:
     models = ["alwaysai/ssd_mobilenet_v2_oidv4","alwaysai/ssd_inception_v2_coco_2018_01_28"]
 
+    # include any labels that you wish to detect from any models (listed above in 'models') here in this list
     detected_contraband = ["Pen", "cell phone", "backpack", "book", "Book", "Ring binder", "Headphones", "Calculator", "Mobile phone", 
     "Telephone", "Microphone", "Ipod", "Remote control"]
-
-    detectors = []
 
     contraband_summary = ContrabandSummary()
 
     # load all the models (creates a new object detector for each model)
+    detectors = []
     for model in models:
 
         # start up a first object detection model
@@ -60,7 +65,6 @@ def main():
             # Allow Webcam to warm up
             time.sleep(2.0)
             fps.start()
-            frame_count = 0
 
             # loop detection
             while True:
@@ -70,6 +74,7 @@ def main():
 
                 predictions_to_markup = []
 
+                # only analyze every 'detect_period' frame (i.e. every 50th in original code)
                 if frame_idx % detect_period == 0:
 
                     # gather data from the all the detectors 
@@ -90,11 +95,15 @@ def main():
 
                                 #frame = edgeiq.markup_image(frame, predictions_to_markup) 
                                 tracker.start(frame, prediction) 
-
                 else:
+
+                    # if there are objects being tracked, update the tracker with the new frame
                     if tracker.count:
+
+                        # get the new predictions for the objects being tracked, used to markup the frame
                         predictions_to_markup = tracker.update(frame)
 
+                # mark up the frame with the predictions for the contraband objects
                 frame = edgeiq.markup_image(
                         frame, predictions_to_markup, show_labels=True,
                         show_confidences=False, colors=obj_detect.colors)
@@ -113,7 +122,6 @@ def main():
         fps.stop()
         print("elapsed time: {:.2f}".format(fps.get_elapsed_seconds()))
         print("approx. FPS: {:.2f}".format(fps.compute_fps()))
-
         print("Program Ending")
 
 

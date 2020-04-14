@@ -1,6 +1,5 @@
 import time
 import edgeiq
-import numpy
 from contraband_summary import ContrabandSummary 
 """
 Detect items that are considered contraband for working or learning 
@@ -36,8 +35,6 @@ def main():
     detected_contraband = ["Pen", "cell phone", "backpack", "book", "Book", "Ring binder", "Headphones", "Calculator", "Mobile phone", 
     "Telephone", "Microphone", "Ipod", "Remote control"]
 
-    contraband_summary = ContrabandSummary()
-
     # load all the models (creates a new object detector for each model)
     detectors = []
     for model in models:
@@ -57,6 +54,7 @@ def main():
 
     tracker = edgeiq.CorrelationTracker(max_objects=5)
     fps = edgeiq.FPS()
+    contraband_summary = ContrabandSummary()
 
     try:
         with edgeiq.WebcamVideoStream(cam=0) as video_stream, \
@@ -69,10 +67,8 @@ def main():
             # loop detection
             while True:
                 frame = video_stream.read()
-
-                text = [""]
-
                 predictions_to_markup = []
+                text = [""]
 
                 # only analyze every 'detect_period' frame (i.e. every 50th in original code)
                 if frame_idx % detect_period == 0:
@@ -87,13 +83,12 @@ def main():
                             tracker.stop_all()
 
                         # append each prediction
-                        for prediction in results.predictions:
+                        predictions = results.predictions
+                        for prediction in predictions:
 
                             if (prediction.label.strip() in detected_contraband):
                                 contraband_summary.contraband_alert(prediction.label, frame)
                                 predictions_to_markup.append(prediction)
-
-                                #frame = edgeiq.markup_image(frame, predictions_to_markup) 
                                 tracker.start(frame, prediction) 
                 else:
 
@@ -109,7 +104,7 @@ def main():
                         show_confidences=False, colors=obj_detect.colors)
                    
                 # send the collection of contraband detection points (string and video frame) to the streamer
-                text =contraband_summary.get_contraband_string()
+                text = contraband_summary.get_contraband_string()
                 
                 streamer.send_data(frame, text)
                 frame_idx += 1

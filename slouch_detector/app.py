@@ -64,6 +64,8 @@ def main():
             while True:
                 frame = video_stream.read()
                 results = pose_estimator.estimate(frame)
+
+
                 # Generate text to display on streamer
                 text = ["Model: {}".format(pose_estimator.model_id)]
                 text.append(
@@ -71,7 +73,6 @@ def main():
                 for ind, pose in enumerate(results.poses):
                     text.append("Person {}".format(ind))
                     text.append('-'*10)
-                    #text.append("Key Points:")
 
                     # update the instance key_points to check the posture
                     posture.set_key_points(pose.key_points)

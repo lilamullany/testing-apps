@@ -33,6 +33,11 @@ class CheckPosture:
         return self.key_points
 
     def set_message(self, message):
+        """
+        Setter to update the message manually if needed
+        :param message: string
+            The message to override the current message
+        """
         self.message = message
 
     def build_message(self):
@@ -52,6 +57,11 @@ class CheckPosture:
         return current_message
 
     def get_message(self):
+        """
+        Getter method to return the current message
+        :return: string
+            The current posture message
+        """
         return self.message
 
     def set_scale(self, scale):

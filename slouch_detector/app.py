@@ -71,19 +71,25 @@ def main():
                 for ind, pose in enumerate(results.poses):
                     text.append("Person {}".format(ind))
                     text.append('-'*10)
-                    text.append("Key Points:")
+                    #text.append("Key Points:")
 
                     # update the instance key_points to check the posture
                     posture.set_key_points(pose.key_points)
 
                     # play a reminder if you are not sitting up straight
-                    if not posture.correct_posture():
+                    correct_posture = posture.correct_posture()
+                    if not correct_posture:
+                        mess = posture.build_message()
+                        text.append(mess)
+                        print(mess)
+                        print(pose.key_points)
+
+                    streamer.send_data(results.draw_poses(frame), text)
+                    fps.update()
+
+                    if not correct_posture:
                         sound_play = audio_clip.play()
                         sound_play.wait_done()
-
-                streamer.send_data(results.draw_poses(frame), text)
-
-                fps.update()
 
                 if streamer.check_exit():
                     break

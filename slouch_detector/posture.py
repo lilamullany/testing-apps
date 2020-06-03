@@ -36,6 +36,11 @@ class CheckPosture:
         self.message = message
 
     def build_message(self):
+        """
+        Builds a string with advice to the user on how to correct their posture
+        :return: string
+            The string containing specific advice
+        """
         current_message = ""
         if not self.check_head_drop():
             current_message += "Lift up your head!\n"
@@ -76,7 +81,7 @@ class CheckPosture:
             and  self.key_points['Left Shoulder'].x >= (self.key_points['Left Ear'].x + (self.scale * 150)):
                 return False
         if self.key_points['Right Shoulder'].x != -1 and self.key_points['Right Ear'].x != -1 \
-            and  self.key_points['Right'].x >= (self.key_points['Right Ear'].x + (self.scale * 160)):
+            and  self.key_points['Right Shoulder'].x >= (self.key_points['Right Ear'].x + (self.scale * 160)):
                 return False
 
         return True
@@ -88,9 +93,9 @@ class CheckPosture:
         :return: Boolean
             True if not slumped; False if slumped
         """
-        if self.key_points['Neck'].x != -1 and (self.key_points['Nose'].x) != -1 \
-            and self.key_points['Neck'].x <= (self.key_points['Nose'].x + (self.scale * 100)):
-                return False
+        if self.key_points['Neck'].y != -1 and self.key_points['Nose'].y != -1 \
+            and (self.key_points['Nose'].y >= self.key_points['Neck'].y - (self.scale * 150)):
+            return False
         return True
 
 

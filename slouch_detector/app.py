@@ -79,10 +79,7 @@ def main():
                     # play a reminder if you are not sitting up straight
                     correct_posture = posture.correct_posture()
                     if not correct_posture:
-                        mess = posture.build_message()
-                        text.append(mess)
-                        print(mess)
-                        print(pose.key_points)
+                        text.append(posture.build_message())
 
                     streamer.send_data(results.draw_poses(frame), text)
                     fps.update()

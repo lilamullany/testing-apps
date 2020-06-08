@@ -88,10 +88,10 @@ class CheckPosture:
             True if not leaning forward; False otherwise
         """
         if self.key_points['Left Shoulder'].x != -1 and self.key_points['Left Ear'].x != -1 \
-            and  self.key_points['Left Shoulder'].x >= (self.key_points['Left Ear'].x + (self.scale * 150)):
+            and  self.key_points['Left Shoulder'].x >= (self.key_points['Left Ear'].x + (self.scale * 180)):
                 return False
         if self.key_points['Right Shoulder'].x != -1 and self.key_points['Right Ear'].x != -1 \
-            and  self.key_points['Right Shoulder'].x >= (self.key_points['Right Ear'].x + (self.scale * 160)):
+            and  self.key_points['Right Shoulder'].x >= (self.key_points['Right Ear'].x + (self.scale * 180)):
                 return False
 
         return True
@@ -116,10 +116,10 @@ class CheckPosture:
             True if not head not tilted downwards; False if tilted downward
         """
         if self.key_points['Left Eye'].y != -1 and self.key_points['Left Ear'].y != -1 \
-            and self.key_points['Left Eye'].y > (self.key_points['Left Ear'].y + (self.scale * 15)):
+            and self.key_points['Left Eye'].y > (self.key_points['Left Ear'].y + (self.scale * 10)):
                 return False
         if self.key_points['Right Eye'].y != -1 and self.key_points['Right Ear'].y != -1 \
-            and self.key_points['Right Eye'].y > (self.key_points['Right Ear'].y + (self.scale * 15)) :
+            and self.key_points['Right Eye'].y > (self.key_points['Right Ear'].y + (self.scale * 10)) :
                 return False
                         
         return True

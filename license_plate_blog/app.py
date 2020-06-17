@@ -19,7 +19,7 @@ def main():
     detect_period = 30
 
     obj_detect = edgeiq.ObjectDetection(
-            "alwaysai/mobilenet_ssd")
+            "alwaysai/vehicle_license_mobilenet_ssd")
     obj_detect.load(engine=edgeiq.Engine.DNN)
 
     print("Loaded model:\n{}\n".format(obj_detect.model_id))
@@ -37,21 +37,16 @@ def main():
             with edgeiq.FileVideoStream(video_path) \
             as video_stream, edgeiq.Streamer() as streamer:
 
-            #with edgeiq.FileVideoStream("./video/driving_front_a.mp4") as video_stream, \
-                    #edgeiq.Streamer() as streamer:
                 # Allow Webcam to warm up
                 time.sleep(2.0)
                 fps.start()
-
-                numbers = []
-                license_count = 0
-                vehicles = 0
 
                 # loop detection
                 while True:
                     frame = video_stream.read()
                     predictions = []
 
+                    # if using new detections, update 'predictions'
                     if frame_idx % detect_period == 0:
                         results = obj_detect.detect_objects(frame, confidence_level=.5)
                         frame = edgeiq.markup_image(
@@ -69,18 +64,23 @@ def main():
 
                         predictions = results.predictions
 
-                        if not results.predictions:
+                        if not predictions:
                             text.append("no predictions")
+
+                        # use 'number' to identify unique objects
                         number = 0
                         for prediction in predictions:
                             number = number + 1
                             text.append("{}_{}: {:2.2f}%".format(
                                 prediction.label, number, prediction.confidence * 100))
                             tracker.start(frame, prediction)
+
                     else:
+                        # otherwise, set 'predictions' to the tracked predictions
                         if tracker.count:
                             predictions = tracker.update(frame)
 
+                    # either way, use 'predictions' to mark up the image and update text
                     frame = edgeiq.markup_image(
                             frame, predictions, show_labels=True,
                             show_confidences=False, colors=obj_detect.colors)

@@ -20,6 +20,8 @@ class SampleWriter(object):
     def __init__(self):
         self.write = False
         self.text = ""
+        self.close = False
+
 
 sio = socketio.Client()
 writer = SampleWriter()
@@ -41,13 +43,14 @@ def connect_error():
 def disconnect():
     print('[INFO] Disconnected from server.')
 
+
 @sio.on('write_data', namespace='/cv')
 def write_data(data):
     writer.write = True
     writer.text = 'Data Collection Started!'
     time.sleep(0.5)
     print('start signal received')
-    file_name = file_set_up()
+    file_name = file_set_up("video")
 
     with edgeiq.WebcamVideoStream(cam=0) as video_stream, edgeiq.VideoWriter(
             file_name, fps=SAMPLE_RATE) as video_writer:
@@ -64,7 +67,6 @@ def write_data(data):
             t_start = time.time()
             frame = video_stream.read()
             video_writer.write_frame(frame)
-            #streamer.send_data(frame, None)
             t_end = time.time() - t_start
             t_wait = (1 / SAMPLE_RATE) - t_end
             if t_wait > 0:
@@ -76,15 +78,17 @@ def write_data(data):
                 print('Data Collection Ended')
                 break
 
+
 @sio.on('stop_writing', namespace='/cv')
 def stop_writing(data):
     writer.write = False
     print('stop signal received')
 
+
 @sio.on('take_snapshot', namespace='/cv')
 def take_snapshot(data):
     print('snapshot signal received')
-    file_name = file_set_up()
+    file_name = file_set_up("image")
     with edgeiq.WebcamVideoStream(cam=0) as video_stream, edgeiq.VideoWriter(
             file_name, fps=SAMPLE_RATE) as video_writer:
 
@@ -98,15 +102,25 @@ def take_snapshot(data):
         time.sleep(0.5)
         print('Snapshot Saved')
 
-def file_set_up():
+
+@sio.on('close', namespace='/cv')
+def close_app(data):
+    writer.close = True
+
+
+def file_set_up(sample_type):
+    folder = "Images" if sample_type == "image" else "Videos"
+    date_time = time.strftime("%d%H%M%S", time.localtime())
+    
     if not os.path.exists('samples'):
         os.mkdir('samples')
 
-    date_time = time.strftime("%d%H%M%S", time.localtime())
+    if not os.path.exists('samples/{}'.format(folder)):
+        os.mkdir('samples/{}'.format(folder))
 
-    os.mkdir('samples/{}'.format(date_time))
+    os.mkdir('samples/{}/{}'.format(folder, date_time))
 
-    file_name = 'samples/{}/{}'.format(date_time, time.asctime().replace(" ", "_") + ".avi")
+    file_name = 'samples/{}/{}/{}'.format(folder, date_time, time.asctime().replace(" ", "_") + ".avi")
     return file_name
 
 class CVClient(object):
@@ -149,7 +163,7 @@ class CVClient(object):
                     })
 
     def check_exit(self):
-        pass
+        return writer.close
 
     def close(self):
         sio.disconnect()

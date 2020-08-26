@@ -35,18 +35,25 @@ def disconnect_cv():
 def handle_cv_message(message):
     socketio.emit('server2web', message, namespace='/web')
 
+
 @socketio.on('stop_collection', namespace='/web')
 def stop_collection():
     socketio.emit('stop_writing', None,namespace='/cv')
 
+
 @socketio.on('start_collection', namespace='/web')
 def start_collection():
-    socketio.emit('write_data', None,namespace='/cv')
+    socketio.emit('write_data', None, namespace='/cv')
+
 
 @socketio.on('snapshot', namespace='/web')
 def snapshot():
-    socketio.emit('take_snapshot', None,namespace='/cv')
+    socketio.emit('take_snapshot', None, namespace='/cv')
     
+
+@socketio.on('stop_app', namespace='/web')
+def stop_app():
+    socketio.emit('close', None, namespace='/cv')
 
 
 if __name__ == "__main__":

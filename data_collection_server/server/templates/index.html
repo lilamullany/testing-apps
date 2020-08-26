@@ -172,6 +172,7 @@
   document.addEventListener("DOMContentLoaded", function(event) {
     const image_elem = document.getElementById("streamer-image");
     const text_elem = document.getElementById("streamer-text");
+    const stop_app = document.getElementById("stop-app");
     const stop_button = document.getElementById("stop-button");
     const start_button = document.getElementById("start-button");
     const snapshot = document.getElementById("snapshot");
@@ -180,17 +181,21 @@
       reconnection: false
     });
 
+    stop_app.addEventListener('click', function(e) {
+      socket.emit('stop_app');
+    });
+
     stop_button.addEventListener('click', function(e) {
       socket.emit('stop_collection');
-    })
+    });
 
     start_button.addEventListener('click', function(e) {
       socket.emit('start_collection');
-    })
+    });
 
     snapshot.addEventListener('click', function(e) {
       socket.emit('snapshot');
-    })
+    });
 
     socket.on('connect', () => {
       console.log('Connected');

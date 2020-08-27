@@ -170,14 +170,14 @@ class CVClient(object):
 
 
 def main(camera, use_streamer, server_addr, stream_fps):
-    obj_detect = edgeiq.ObjectDetection(
-            "alwaysai/mobilenet_ssd")
-    obj_detect.load(engine=edgeiq.Engine.DNN)
+    #obj_detect = edgeiq.ObjectDetection(
+           #"alwaysai/mobilenet_ssd")
+    #obj_detect.load(engine=edgeiq.Engine.DNN)
 
-    print("Loaded model:\n{}\n".format(obj_detect.model_id))
-    print("Engine: {}".format(obj_detect.engine))
-    print("Accelerator: {}\n".format(obj_detect.accelerator))
-    print("Labels:\n{}\n".format(obj_detect.labels))
+    #print("Loaded model:\n{}\n".format(obj_detect.model_id))
+    #print("Engine: {}".format(obj_detect.engine))
+    #print("Accelerator: {}\n".format(obj_detect.accelerator))
+    #print("Labels:\n{}\n".format(obj_detect.labels))
 
     fps = edgeiq.FPS()
 

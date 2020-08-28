@@ -2,9 +2,9 @@ import time
 import edgeiq
 import argparse
 import socketio
-import cv2
-import base64
-import os
+from helpers import *
+from sample_writer import *
+from cv_client import *
 """
 Use object detection to detect objects in the frame in realtime. The
 types of objects detected can be changed by selecting different models.
@@ -15,13 +15,6 @@ https://dashboard.alwaysai.co/docs/application_development/changing_the_model.ht
 To change the engine and accelerator, follow this guide:
 https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_and_accelerator.html
 """
-
-class SampleWriter(object):
-    def __init__(self):
-        self.write = False
-        self.text = ""
-        self.close = False
-
 
 sio = socketio.Client()
 writer = SampleWriter()
@@ -108,84 +101,14 @@ def close_app(data):
     writer.close = True
 
 
-def file_set_up(sample_type):
-    folder = "Images" if sample_type == "image" else "Videos"
-    date_time = time.strftime("%d%H%M%S", time.localtime())
-    
-    if not os.path.exists('samples'):
-        os.mkdir('samples')
-
-    if not os.path.exists('samples/{}'.format(folder)):
-        os.mkdir('samples/{}'.format(folder))
-
-    os.mkdir('samples/{}/{}'.format(folder, date_time))
-
-    file_name = 'samples/{}/{}/{}'.format(folder, date_time, time.asctime().replace(" ", "_") + ".avi")
-    return file_name
-
-class CVClient(object):
-    def __init__(self, server_addr, stream_fps):
-        self.server_addr = server_addr
-        self.server_port = 5001
-        self._stream_fps = stream_fps
-        self._last_update_t = time.time()
-        self._wait_t = (1/self._stream_fps)
-
-    def setup(self):
-        print('[INFO] Connecting to server http://{}:{}...'.format(
-            self.server_addr, self.server_port))
-        sio.connect(
-                'http://{}:{}'.format(self.server_addr, self.server_port),
-                transports=['websocket'],
-                namespaces=['/cv', '/web'])
-        time.sleep(1)
-        return self
-
-    def _convert_image_to_jpeg(self, image):
-        # Encode frame as jpeg
-        frame = cv2.imencode('.jpg', image)[1].tobytes()
-        # Encode frame in base64 representation and remove
-        # utf-8 encoding
-        frame = base64.b64encode(frame).decode('utf-8')
-        return "data:image/jpeg;base64,{}".format(frame)
-
-    def send_data(self, frame, text):
-        cur_t = time.time()
-        if cur_t - self._last_update_t > self._wait_t:
-            self._last_update_t = cur_t
-            frame = edgeiq.resize(
-                    frame, width=640, height=480, keep_scale=True)
-            sio.emit(
-                    'cv2server',
-                    {
-                        'image': self._convert_image_to_jpeg(frame),
-                        'text': '<br />'.join(text)
-                    })
-
-    def check_exit(self):
-        return writer.close
-
-    def close(self):
-        sio.disconnect()
-
-
 def main(camera, use_streamer, server_addr, stream_fps):
-    #obj_detect = edgeiq.ObjectDetection(
-           #"alwaysai/mobilenet_ssd")
-    #obj_detect.load(engine=edgeiq.Engine.DNN)
-
-    #print("Loaded model:\n{}\n".format(obj_detect.model_id))
-    #print("Engine: {}".format(obj_detect.engine))
-    #print("Accelerator: {}\n".format(obj_detect.accelerator))
-    #print("Labels:\n{}\n".format(obj_detect.labels))
-
     fps = edgeiq.FPS()
 
     try:
         if use_streamer:
             streamer = edgeiq.Streamer().setup()
         else:
-            streamer = CVClient(server_addr, stream_fps).setup()
+            streamer = CVClient(server_addr, stream_fps, sio, writer).setup()
 
         with edgeiq.WebcamVideoStream(cam=camera) as video_stream:
             # Allow Webcam to warm up
@@ -195,19 +118,8 @@ def main(camera, use_streamer, server_addr, stream_fps):
             # loop detection
             while True:
                 frame = video_stream.read()
-                #results = obj_detect.detect_objects(frame, confidence_level=.5)
-                #frame = edgeiq.markup_image(
-                        #frame, results.predictions, colors=obj_detect.colors)
-
-                # Generate text to display on streamer
                 text = [""]
-                #text.append(
-                        #"Inference time: {:1.3f} s".format(results.duration))
                 text.append(writer.text)
-
-                #for prediction in results.predictions:
-                    #text.append("{}: {:2.2f}%".format(
-                        #prediction.label, prediction.confidence * 100))
 
                 streamer.send_data(frame, text)
 

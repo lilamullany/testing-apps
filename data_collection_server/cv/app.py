@@ -6,14 +6,8 @@ from helpers import *
 from sample_writer import *
 from cv_client import *
 """
-Use object detection to detect objects in the frame in realtime. The
-types of objects detected can be changed by selecting different models.
-
-To change the computer vision model, follow this guide:
-https://dashboard.alwaysai.co/docs/application_development/changing_the_model.html
-
-To change the engine and accelerator, follow this guide:
-https://dashboard.alwaysai.co/docs/application_development/changing_the_engine_and_accelerator.html
+Allows the user to record and save snapshots and videos using
+a camera on an edge device.
 """
 
 sio = socketio.Client()
@@ -21,7 +15,7 @@ writer = SampleWriter()
 SAMPLE_RATE = 5
 streamer = None
 
-
+# socket handlers
 @sio.event
 def connect():
     print('[INFO] Successfully connected to server.')
@@ -80,6 +74,9 @@ def stop_writing(data):
 
 @sio.on('take_snapshot', namespace='/cv')
 def take_snapshot(data):
+    """Takes a single snapshot and saves it.
+
+    """
     print('snapshot signal received')
     file_name = file_set_up("image")
     with edgeiq.WebcamVideoStream(cam=0) as video_stream, edgeiq.VideoWriter(
@@ -105,6 +102,7 @@ def main(camera, use_streamer, server_addr, stream_fps):
     fps = edgeiq.FPS()
 
     try:
+        # initialize the streamer
         if use_streamer:
             streamer = edgeiq.Streamer().setup()
         else:
